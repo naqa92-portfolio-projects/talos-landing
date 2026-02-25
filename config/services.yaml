@@ -6,7 +6,7 @@ services:
     name_en: ArgoCD
     desc_fr: Deploiement continu GitOps
     desc_en: GitOps continuous deployment
-  grafana:
+  victoria-metrics-k8s-stack:
     icon: bar-chart-3
     url: https://grafana.taloslab.cc
     name_fr: Grafana
