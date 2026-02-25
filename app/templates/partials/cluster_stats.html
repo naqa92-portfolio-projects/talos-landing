@@ -1,1 +1,74 @@
 {# HTMX partial — cluster stats (nodes, uptime, CPU, RAM) #}
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+
+    {# Card 1 — Nodes #}
+    <div class="glass p-6 rounded-2xl">
+        <div class="flex items-center gap-2 mb-4">
+            <i data-lucide="layers" class="w-4 h-4 text-purple-400"></i>
+            <span class="text-[10px] font-semibold tracking-[0.2em] uppercase text-slate-400">Nodes</span>
+        </div>
+        <div class="text-3xl font-bold text-white">{{ stats.nodes_ready }}/{{ stats.nodes_total }}</div>
+        <span class="text-[10px] text-slate-500 tracking-wider uppercase mt-1">Operational</span>
+    </div>
+
+    {# Card 2 — Uptime #}
+    <div class="glass p-6 rounded-2xl">
+        <div class="flex items-center gap-2 mb-4">
+            <i data-lucide="clock" class="w-4 h-4 text-indigo-400"></i>
+            <span class="text-[10px] font-semibold tracking-[0.2em] uppercase text-slate-400">Uptime</span>
+        </div>
+        <div class="text-3xl font-bold text-white">{{ stats.uptime }}</div>
+        <span class="text-[10px] text-slate-500 tracking-wider uppercase mt-1">Current Session</span>
+    </div>
+
+    {# Card 3 — CPU #}
+    {% set cpu = stats.cpu_percent if stats.cpu_percent is not none else 0 %}
+    {% set cpu_display = "%.1f"|format(stats.cpu_percent) ~ "%" if stats.cpu_percent is not none else "N/A" %}
+    <div class="glass p-6 rounded-2xl" x-data="{ val: {{ cpu }} }">
+        <div class="flex items-center gap-2 mb-4">
+            <i data-lucide="cpu" class="w-4 h-4 text-rose-400"></i>
+            <span class="text-[10px] font-semibold tracking-[0.2em] uppercase text-slate-400">CPU Load</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <svg class="w-14 h-14 transform -rotate-90" viewBox="0 0 56 56">
+                <circle cx="28" cy="28" r="24" stroke-width="4" fill="transparent" class="text-white/5 stroke-current" />
+                <circle cx="28" cy="28" r="24" stroke-width="4" fill="transparent"
+                        stroke-dasharray="150.7"
+                        :stroke-dashoffset="150.7 - (150.7 * val / 100)"
+                        stroke-linecap="round"
+                        class="text-rose-500 stroke-current circle-gauge" />
+            </svg>
+            <div class="text-2xl font-bold text-white">{{ cpu_display }}</div>
+        </div>
+        <div class="mt-3 h-1 rounded-full bg-white/5 overflow-hidden">
+            <div class="h-full rounded-full bg-rose-500 transition-all duration-1000"
+                 :style="'width: ' + val + '%'"></div>
+        </div>
+    </div>
+
+    {# Card 4 — Memory #}
+    {% set ram = stats.ram_percent if stats.ram_percent is not none else 0 %}
+    {% set ram_display = "%.1f"|format(stats.ram_percent) ~ "%" if stats.ram_percent is not none else "N/A" %}
+    <div class="glass p-6 rounded-2xl" x-data="{ val: {{ ram }} }">
+        <div class="flex items-center gap-2 mb-4">
+            <i data-lucide="hard-drive" class="w-4 h-4 text-blue-400"></i>
+            <span class="text-[10px] font-semibold tracking-[0.2em] uppercase text-slate-400">Memory</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <svg class="w-14 h-14 transform -rotate-90" viewBox="0 0 56 56">
+                <circle cx="28" cy="28" r="24" stroke-width="4" fill="transparent" class="text-white/5 stroke-current" />
+                <circle cx="28" cy="28" r="24" stroke-width="4" fill="transparent"
+                        stroke-dasharray="150.7"
+                        :stroke-dashoffset="150.7 - (150.7 * val / 100)"
+                        stroke-linecap="round"
+                        class="text-blue-500 stroke-current circle-gauge" />
+            </svg>
+            <div class="text-2xl font-bold text-white">{{ ram_display }}</div>
+        </div>
+        <div class="mt-3 h-1 rounded-full bg-white/5 overflow-hidden">
+            <div class="h-full rounded-full bg-blue-500 transition-all duration-1000"
+                 :style="'width: ' + val + '%'"></div>
+        </div>
+    </div>
+
+</div>

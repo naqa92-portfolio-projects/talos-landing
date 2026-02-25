@@ -1,12 +1,3 @@
-# --- CSS build stage ---
-FROM node:22-alpine AS css
-
-WORKDIR /build
-RUN npm install --save-dev tailwindcss @tailwindcss/cli
-COPY app/templates/ app/templates/
-COPY app/static/css/input.css app/static/css/
-RUN npx @tailwindcss/cli -i app/static/css/input.css -o app/static/css/style.css --minify
-
 # --- Python dependencies ---
 FROM python:3.14-slim AS builder
 
@@ -28,7 +19,6 @@ RUN groupadd --gid 10001 landing && \
 COPY --from=builder /app/.venv .venv/
 COPY app/ app/
 COPY config/ config/
-COPY --from=css /build/app/static/css/style.css app/static/css/style.css
 
 ENV PATH="/app/.venv/bin:$PATH"
 
