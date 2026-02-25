@@ -339,7 +339,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "flask", specifier = ">=3.1" },
-    { name = "gunicorn", specifier = ">=23.0,<25" },
+    { name = "gunicorn", specifier = ">=23.0" },
     { name = "kubernetes", specifier = ">=31.0" },
     { name = "pyyaml", specifier = ">=6.0" },
 ]
