@@ -1,10 +1,13 @@
 {
   "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/main/.schema/devbox.schema.json",
-  "packages": ["nodejs@22"],
+  "packages": [
+    "tailwindcss_4@4.1.18"
+  ],
   "shell": {
+    "init_hook": [""],
     "scripts": {
-      "css:build": "npx --yes @tailwindcss/cli -i ./app/static/css/input.css -o ./app/static/css/style.css --minify",
-      "css:watch": "npx --yes @tailwindcss/cli -i ./app/static/css/input.css -o ./app/static/css/style.css --watch"
+      "css:build": "tailwindcss -i ./app/static/css/input.css -o ./app/static/css/style.css --minify",
+      "css:watch": "tailwindcss -i ./app/static/css/input.css -o ./app/static/css/style.css --watch"
     }
   }
 }
