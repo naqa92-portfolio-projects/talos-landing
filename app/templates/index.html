@@ -24,52 +24,70 @@
 
         {# Title #}
         <h1 class="text-7xl md:text-9xl font-extrabold tracking-tighter text-white text-glow animate-float">
-            <span class="bg-clip-text text-transparent bg-gradient-to-b from-white to-white/40">taloslab</span><span class="text-purple-500">.cc</span>
+            <span class="bg-clip-text text-transparent bg-linear-to-b from-white to-white/40">taloslab</span><span class="text-purple-500">.cc</span>
         </h1>
 
         {# Tagline bilingue #}
         <p x-show="lang === 'fr'" x-cloak
            class="text-lg md:text-xl text-slate-400 font-light max-w-2xl mx-auto leading-relaxed tracking-wide mt-6 text-center">
-            Infrastructure Kubernetes haute disponibilité, automatisation edge computing
+            Cluster Kubernetes sur Hetzner. OS immuable Talos, réseau eBPF Cilium, GitOps via ArgoCD — zero-trust par défaut.
         </p>
         <p x-show="lang === 'en'" x-cloak
            class="text-lg md:text-xl text-slate-400 font-light max-w-2xl mx-auto leading-relaxed tracking-wide mt-6 text-center">
-            A high-performance homelab Kubernetes infrastructure focused on high availability and edge computing automation.
+            Kubernetes cluster on Hetzner. Immutable Talos OS, Cilium eBPF networking, GitOps via ArgoCD — zero-trust by default.
         </p>
 
         {# Explore button #}
-        <a href="#cluster-stats"
-           class="glass glass-hover mt-10 px-8 py-3 rounded-xl text-sm font-semibold tracking-wider uppercase text-purple-300 inline-flex items-center gap-2 transition-all duration-300">
-            <span>Explore Cluster</span>
+        <button @click="document.getElementById('cluster-stats').scrollIntoView({ behavior: 'smooth' })"
+                class="glass glass-hover mt-10 px-8 py-3 rounded-xl text-sm font-semibold tracking-wider uppercase text-purple-300 inline-flex items-center gap-2 transition-all duration-300">
+            <span x-show="lang === 'fr'" x-cloak>Explorer le cluster</span>
+            <span x-show="lang === 'en'" x-cloak>Explore Cluster</span>
             <i data-lucide="chevron-down" class="w-4 h-4"></i>
-        </a>
+        </button>
 
         {# Status indicator #}
-        <div class="mt-8 flex items-center gap-2">
-            {% if stats.status == "ONLINE" %}
-            <span class="relative flex h-2.5 w-2.5">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-            </span>
-            <span class="text-xs font-semibold tracking-widest uppercase text-emerald-400">{{ stats.status }}</span>
-            {% else %}
-            <span class="relative flex h-2.5 w-2.5">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-yellow-500"></span>
-            </span>
-            <span class="text-xs font-semibold tracking-widest uppercase text-yellow-400">{{ stats.status }}</span>
-            {% endif %}
+        <div class="mt-8 flex flex-col items-center gap-1.5">
+            <div class="flex items-center gap-2">
+                {% if stats.status == "ONLINE" %}
+                <span class="relative flex h-2.5 w-2.5">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 motion-reduce:animate-none"></span>
+                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                </span>
+                <span class="text-xs font-semibold tracking-widest uppercase text-emerald-400">{{ stats.status }}</span>
+                {% else %}
+                <span class="relative flex h-2.5 w-2.5">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75 motion-reduce:animate-none"></span>
+                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-yellow-500"></span>
+                </span>
+                <span class="text-xs font-semibold tracking-widest uppercase text-yellow-400">{{ stats.status }}</span>
+                {% endif %}
+            </div>
+            <p class="text-[10px] text-slate-600 tracking-wider" x-show="lang === 'fr'" x-cloak>Métriques réelles · API Kubernetes live</p>
+            <p class="text-[10px] text-slate-600 tracking-wider" x-show="lang === 'en'" x-cloak>Real metrics · Live Kubernetes API</p>
         </div>
 
         {# Scroll indicator #}
-        <div class="absolute bottom-8 flex flex-col items-center gap-2">
-            <span class="text-[10px] font-semibold tracking-[0.3em] uppercase text-slate-500">Scroll</span>
-            <div class="w-px h-12 bg-gradient-to-b from-purple-500/60 to-transparent"></div>
-        </div>
+        <button @click="document.getElementById('cluster-stats').scrollIntoView({ behavior: 'smooth' })"
+                class="absolute bottom-8 flex flex-col items-center gap-3 opacity-30 hover:opacity-100 transition-all duration-500 cursor-pointer"
+                aria-label="Scroll down">
+            <span class="[writing-mode:vertical-lr] rotate-180 text-[10px] font-semibold tracking-[0.3em] uppercase text-slate-500 select-none">Scroll</span>
+            <div class="relative w-0.5 h-16 overflow-hidden">
+                <div class="absolute inset-0 bg-linear-to-b from-purple-500 via-purple-400/60 to-transparent"></div>
+                <div class="absolute inset-0 w-full h-full bg-[#050508] animate-[scroll-line_2s_ease-in-out_infinite]"></div>
+            </div>
+        </button>
     </section>
 
     {# ── Cluster Stats ── #}
     <section id="cluster-stats" class="max-w-7xl mx-auto px-6 py-16">
+        <div class="flex items-center gap-2 mb-4">
+            <span class="relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 motion-reduce:animate-none"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span class="text-[10px] font-semibold tracking-[0.2em] uppercase text-emerald-400" x-show="lang === 'fr'" x-cloak>Métriques en direct · API Kubernetes</span>
+            <span class="text-[10px] font-semibold tracking-[0.2em] uppercase text-emerald-400" x-show="lang === 'en'" x-cloak>Live metrics · Kubernetes API</span>
+        </div>
         <div hx-get="/partials/cluster-stats" hx-trigger="load, every 30s" hx-swap="innerHTML">
             {% include "partials/cluster_stats.html" %}
         </div>
@@ -79,8 +97,8 @@
     <section class="max-w-7xl mx-auto px-6 py-16">
         <div class="mb-10">
             <h2 class="text-3xl md:text-4xl font-bold text-white">Infrastructure</h2>
-            <p x-show="lang === 'fr'" x-cloak class="text-sm text-slate-400 mt-2 tracking-wide">Composants du cluster</p>
-            <p x-show="lang === 'en'" x-cloak class="text-sm text-slate-400 mt-2 tracking-wide">Cluster components</p>
+            <p x-show="lang === 'fr'" x-cloak class="text-sm text-slate-400 mt-2 tracking-wide">Composants du cluster · synchronisés depuis ArgoCD</p>
+            <p x-show="lang === 'en'" x-cloak class="text-sm text-slate-400 mt-2 tracking-wide">Cluster components · synced from ArgoCD</p>
         </div>
         <div hx-get="/partials/infra-cards" hx-trigger="load, every 30s" hx-swap="innerHTML">
             {% include "partials/infra_cards.html" %}
@@ -91,8 +109,8 @@
     <section class="max-w-7xl mx-auto px-6 py-16">
         <div class="mb-10">
             <h2 class="text-3xl md:text-4xl font-bold text-white">Services</h2>
-            <p x-show="lang === 'fr'" x-cloak class="text-sm text-slate-400 mt-2 tracking-wide">Endpoints publics</p>
-            <p x-show="lang === 'en'" x-cloak class="text-sm text-slate-400 mt-2 tracking-wide">Public endpoints</p>
+            <p x-show="lang === 'fr'" x-cloak class="text-sm text-slate-400 mt-2 tracking-wide">Endpoints publics · statut en direct</p>
+            <p x-show="lang === 'en'" x-cloak class="text-sm text-slate-400 mt-2 tracking-wide">Public endpoints · live status</p>
         </div>
         <div hx-get="/partials/service-cards" hx-trigger="load, every 30s" hx-swap="innerHTML">
             {% include "partials/service_cards.html" %}
@@ -102,29 +120,13 @@
     {# ── Footer ── #}
     <footer class="glass mt-16">
         <div class="max-w-7xl mx-auto px-6 py-12">
-            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
-                {# Links #}
-                <div class="flex items-center gap-6">
-                    <a href="https://github.com/naqa92-portfolio-projects/talos-infra" target="_blank" rel="noopener"
-                       class="flex items-center gap-2 text-sm text-slate-400 hover:text-purple-400 transition-colors">
-                        <i data-lucide="github" class="w-4 h-4"></i>
-                        <span>talos-infra</span>
-                    </a>
-                    <a href="https://github.com/naqa92-portfolio-projects/talos-gitops" target="_blank" rel="noopener"
-                       class="flex items-center gap-2 text-sm text-slate-400 hover:text-purple-400 transition-colors">
-                        <i data-lucide="github" class="w-4 h-4"></i>
-                        <span>talos-gitops</span>
-                    </a>
-                    <a href="https://portfolio.ndebaa.com" target="_blank" rel="noopener"
-                       class="flex items-center gap-2 text-sm text-slate-400 hover:text-purple-400 transition-colors">
-                        <i data-lucide="globe" class="w-4 h-4"></i>
-                        <span>Portfolio</span>
-                    </a>
-                </div>
-                {# Git clone #}
-                <code class="text-xs text-slate-500 font-['JetBrains_Mono']">
-                    git clone https://github.com/naqa92-portfolio-projects/talos-infra.git
-                </code>
+            <div class="flex items-center justify-between">
+                <a href="https://portfolio.ndebaa.com" target="_blank" rel="noopener"
+                   class="flex items-center gap-2 text-sm text-slate-400 hover:text-purple-400 transition-colors">
+                    <i data-lucide="globe" class="w-4 h-4"></i>
+                    <span>Portfolio</span>
+                </a>
+                <span class="text-xs text-slate-700 font-['JetBrains_Mono']">taloslab.cc</span>
             </div>
         </div>
     </footer>

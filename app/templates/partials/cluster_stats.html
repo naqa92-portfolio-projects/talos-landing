@@ -1,5 +1,5 @@
 {# HTMX partial — cluster stats (nodes, uptime, CPU, RAM) #}
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-stats-refresh">
 
     {# Card 1 — Nodes #}
     <div class="glass p-6 rounded-2xl">
@@ -24,7 +24,7 @@
     {# Card 3 — CPU #}
     {% set cpu = stats.cpu_percent if stats.cpu_percent is not none else 0 %}
     {% set cpu_display = "%.1f"|format(stats.cpu_percent) ~ "%" if stats.cpu_percent is not none else "N/A" %}
-    <div class="glass p-6 rounded-2xl" x-data="{ val: {{ cpu }} }">
+    <div class="glass p-6 rounded-2xl" x-data="{ val: 0, target: {{ cpu }} }" x-init="$nextTick(() => val = target)">
         <div class="flex items-center gap-2 mb-4">
             <i data-lucide="cpu" class="w-4 h-4 text-rose-400"></i>
             <span class="text-[10px] font-semibold tracking-[0.2em] uppercase text-slate-400">CPU Load</span>
@@ -49,7 +49,7 @@
     {# Card 4 — Memory #}
     {% set ram = stats.ram_percent if stats.ram_percent is not none else 0 %}
     {% set ram_display = "%.1f"|format(stats.ram_percent) ~ "%" if stats.ram_percent is not none else "N/A" %}
-    <div class="glass p-6 rounded-2xl" x-data="{ val: {{ ram }} }">
+    <div class="glass p-6 rounded-2xl" x-data="{ val: 0, target: {{ ram }} }" x-init="$nextTick(() => val = target)">
         <div class="flex items-center gap-2 mb-4">
             <i data-lucide="hard-drive" class="w-4 h-4 text-blue-400"></i>
             <span class="text-[10px] font-semibold tracking-[0.2em] uppercase text-slate-400">Memory</span>

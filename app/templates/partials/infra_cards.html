@@ -1,15 +1,24 @@
 {# HTMX partial — infrastructure cards from ArgoCD applications #}
-<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-stats-refresh">
 {% for app in infra_apps %}
     <div class="glass glass-hover p-5 rounded-2xl transition-all duration-300">
         <div class="flex items-center justify-between mb-3">
             <span class="text-sm font-semibold text-white">{{ app.name }}</span>
             {% if app.health == "Healthy" %}
-            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span class="relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 motion-reduce:animate-none"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
             {% elif app.health == "Degraded" %}
-            <span class="w-2 h-2 rounded-full bg-red-500"></span>
+            <span class="relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 motion-reduce:animate-none"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+            </span>
             {% else %}
-            <span class="w-2 h-2 rounded-full bg-yellow-500"></span>
+            <span class="relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75 motion-reduce:animate-none"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
+            </span>
             {% endif %}
         </div>
         <div class="flex gap-2">

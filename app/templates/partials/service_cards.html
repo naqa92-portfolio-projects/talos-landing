@@ -1,5 +1,5 @@
 {# HTMX partial — public service cards (ArgoCD + services.yaml metadata) #}
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-stats-refresh">
 {% for service in services %}
     <a href="{{ service.url }}" target="_blank" rel="noopener"
        class="glass glass-hover p-6 rounded-2xl transition-all duration-300 block group">
@@ -8,9 +8,15 @@
             <span class="text-sm font-semibold text-white" x-show="lang === 'fr'" x-cloak>{{ service.name_fr }}</span>
             <span class="text-sm font-semibold text-white" x-show="lang === 'en'" x-cloak>{{ service.name_en }}</span>
             {% if service.health == "Healthy" %}
-            <span class="ml-auto w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span class="ml-auto relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 motion-reduce:animate-none"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
             {% else %}
-            <span class="ml-auto w-2 h-2 rounded-full bg-yellow-500"></span>
+            <span class="ml-auto relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75 motion-reduce:animate-none"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
+            </span>
             {% endif %}
         </div>
         <p class="text-xs text-slate-400" x-show="lang === 'fr'" x-cloak>{{ service.desc_fr }}</p>
