@@ -12,8 +12,13 @@
     <script src="https://unpkg.com/htmx.org@2/dist/htmx.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="bg-[#050508] text-slate-200 font-['Plus_Jakarta_Sans'] antialiased">
+<body x-data="{ lang: localStorage.getItem('lang') || 'en' }"
+      x-init="$watch('lang', val => localStorage.setItem('lang', val))"
+      class="bg-[#050508] text-slate-200 font-['Plus_Jakarta_Sans'] antialiased">
     {% block content %}{% endblock %}
-    <script>lucide.createIcons();</script>
+    <script>
+        lucide.createIcons();
+        document.body.addEventListener('htmx:afterSwap', () => lucide.createIcons());
+    </script>
 </body>
 </html>

@@ -1,1 +1,27 @@
 {# HTMX partial — infrastructure cards from ArgoCD applications #}
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+{% for app in infra_apps %}
+    <div class="glass glass-hover p-5 rounded-2xl transition-all duration-300">
+        <div class="flex items-center justify-between mb-3">
+            <span class="text-sm font-semibold text-white">{{ app.name }}</span>
+            {% if app.health == "Healthy" %}
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            {% elif app.health == "Degraded" %}
+            <span class="w-2 h-2 rounded-full bg-red-500"></span>
+            {% else %}
+            <span class="w-2 h-2 rounded-full bg-yellow-500"></span>
+            {% endif %}
+        </div>
+        <div class="flex gap-2">
+            <span class="text-[10px] font-medium tracking-wider uppercase
+                {% if app.sync == 'Synced' %}text-blue-400{% else %}text-orange-400{% endif %}">
+                {{ app.sync }}
+            </span>
+            <span class="text-[10px] font-medium tracking-wider uppercase
+                {% if app.health == 'Healthy' %}text-emerald-400{% else %}text-yellow-400{% endif %}">
+                {{ app.health }}
+            </span>
+        </div>
+    </div>
+{% endfor %}
+</div>

@@ -86,10 +86,11 @@ Landing page for `taloslab.cc` — Flask SSR + HTMX + TailwindCSS v4.
 
 ## Devbox Requirement
 
-TailwindCSS CLI is only available via Devbox:
+TailwindCSS v4 CLI is available via Devbox scripts:
 
 ```bash
-devbox run -- bash -c "tailwindcss -i ./app/static/css/input.css -o ./app/static/css/style.css"
+devbox run css:build   # Build minified CSS
+devbox run css:watch   # Watch mode for development
 ```
 
 ## Development

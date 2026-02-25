@@ -1,1 +1,38 @@
 @import "tailwindcss";
+
+@layer components {
+    .glass {
+        background: rgba(15, 15, 25, 0.4);
+        backdrop-filter: blur(16px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-hover {
+        transition: all 0.3s ease;
+    }
+    .glass-hover:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(168, 85, 247, 0.3);
+        box-shadow: 0 0 30px rgba(168, 85, 247, 0.1);
+    }
+    .text-glow {
+        text-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+    }
+    .circle-gauge {
+        transition: stroke-dashoffset 1s ease-out;
+    }
+}
+
+@layer utilities {
+    [x-cloak] {
+        display: none !important;
+    }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+.animate-float {
+    animation: float 3s ease-in-out infinite;
+}
