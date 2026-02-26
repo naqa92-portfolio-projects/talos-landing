@@ -126,8 +126,8 @@ jobs:
         run: |
           VERSION=${{ needs.version.outputs.new-version }}
           helm package charts/landing-page/ --version $VERSION --app-version $VERSION
-          helm push landing-page-$VERSION.tgz oci://ghcr.io/naqa92/charts
-          echo "Published: oci://ghcr.io/naqa92/charts/landing-page:$VERSION"
+          helm push landing-page-$VERSION.tgz oci://ghcr.io/naqa92-portfolio-projects/charts
+          echo "Published: oci://ghcr.io/naqa92-portfolio-projects/charts/landing-page:$VERSION"
 
       - name: Commit and tag
         run: |
@@ -154,7 +154,7 @@ jobs:
           body: |
             ## Artifacts
             - **Docker image**: `ghcr.io/${{ github.repository }}:${{ needs.version.outputs.new-version }}`
-            - **Helm chart**: `oci://ghcr.io/naqa92/charts/landing-page:${{ needs.version.outputs.new-version }}`
+            - **Helm chart**: `oci://ghcr.io/naqa92-portfolio-projects/charts/landing-page:${{ needs.version.outputs.new-version }}`
           draft: false
           prerelease: false
           token: ${{ secrets.GITHUB_TOKEN }}
