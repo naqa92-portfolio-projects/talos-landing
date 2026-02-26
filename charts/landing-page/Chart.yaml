@@ -1,0 +1,6 @@
+apiVersion: v2
+name: landing-page
+description: Helm chart for taloslab.cc landing page
+type: application
+version: 0.1.0
+appVersion: 0.1.0
