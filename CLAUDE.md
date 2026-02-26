@@ -84,13 +84,13 @@ Landing page for `taloslab.cc` — Flask SSR + HTMX + TailwindCSS v4.
 - **Data**: Kubernetes API (nodes, metrics, ArgoCD applications)
 - **Design**: Glassmorphism (see `design-system.md` in `talos-infra`)
 
-## Devbox Requirement
+## TailwindCSS
 
-TailwindCSS v4 CLI is available via Devbox scripts:
+TailwindCSS v4 standalone CLI (no Node required):
 
 ```bash
-devbox run css:build   # Build minified CSS
-devbox run css:watch   # Watch mode for development
+tailwindcss -i ./app/static/css/input.css -o ./app/static/css/style.css --minify   # Build
+tailwindcss -i ./app/static/css/input.css -o ./app/static/css/style.css --watch     # Dev
 ```
 
 ## Development

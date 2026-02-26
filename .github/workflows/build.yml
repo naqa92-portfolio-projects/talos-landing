@@ -21,13 +21,14 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install devbox
-        uses: jetify-com/devbox-install-action@v0.13.0
-        with:
-          project-path: devbox.json
+      - name: Install TailwindCSS
+        run: |
+          curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/download/v4.1.18/tailwindcss-linux-x64
+          chmod +x tailwindcss-linux-x64
+          sudo mv tailwindcss-linux-x64 /usr/local/bin/tailwindcss
 
       - name: Build CSS
-        run: devbox run --config devbox.json css:build
+        run: tailwindcss -i ./app/static/css/input.css -o ./app/static/css/style.css --minify
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
