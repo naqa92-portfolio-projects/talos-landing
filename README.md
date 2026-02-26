@@ -2,7 +2,7 @@
 
 > **https://taloslab.cc**
 
-Landing page pour le homelab Kubernetes **taloslab.cc** — affiche en temps réel les métriques du cluster, les composants d'infrastructure et les services publics.
+Landing page pour le homelab Kubernetes **taloslab.cc** — affiche en temps réel les métriques du cluster, les composants d'infrastructure et les services déployés.
 
 ## Stack
 
@@ -12,6 +12,76 @@ Landing page pour le homelab Kubernetes **taloslab.cc** — affiche en temps ré
 | Frontend | Jinja2 SSR, HTMX, TailwindCSS v4, AlpineJS       |
 | Données  | Kubernetes API (nodes, metrics-server, ArgoCD)   |
 | Design   | Glassmorphism, Plus Jakarta Sans, JetBrains Mono |
+
+## Architecture
+
+App
+
+```mermaid
+flowchart TB
+    subgraph Browser["🌐 Navigateur"]
+        HTML["index.html<br/><small>Jinja2 SSR</small>"]
+        HTMX["HTMX<br/><small>polling 30s</small>"]
+        Alpine["AlpineJS<br/><small>i18n, gauges</small>"]
+    end
+
+    subgraph Flask["🐍 Flask + Gunicorn"]
+        Routes["routes.py"]
+        Partials["/partials/*<br/><small>cluster-stats<br/>infra-cards<br/>service-cards</small>"]
+        Cache["Cache mémoire<br/><small>TTL 30s</small>"]
+        K8sClient["k8s.py"]
+    end
+
+    subgraph K8s["☸ Cluster Kubernetes"]
+        Nodes["CoreV1Api<br/><small>Nodes</small>"]
+        Metrics["metrics-server<br/><small>CPU / RAM</small>"]
+        Argo["ArgoCD API<br/><small>Applications</small>"]
+    end
+
+    subgraph Config["📄 Configuration"]
+        SvcYAML["services.yaml<br/><small>ConfigMap</small>"]
+    end
+
+    HTML -->|"GET /"| Routes
+    HTMX -->|"hx-get every 30s"| Partials
+    Alpine -.->|"animations<br/>lang toggle"| HTML
+    Routes --> Cache
+    Partials --> Cache
+    Cache -->|"miss"| K8sClient
+    K8sClient --> Nodes
+    K8sClient --> Metrics
+    K8sClient --> Argo
+    K8sClient --> SvcYAML
+```
+
+Build & Release
+
+```mermaid
+flowchart LR
+    subgraph CI["⚙️ GitHub Actions"]
+        direction TB
+        Version["📦 Version<br/><small>semver depuis<br/>pyproject.toml</small>"]
+        Build["🐳 Build<br/><small>TailwindCSS CLI<br/>Docker build<br/>Trivy scan</small>"]
+        Release["🚀 Release<br/><small>Bump versions<br/>Helm package<br/>Git tag + Release</small>"]
+        Version --> Build --> Release
+    end
+
+    subgraph Registries["📦 GHCR"]
+        DockerImg["Image Docker<br/><small>ghcr.io/.../talos-landing</small>"]
+        HelmChart["Chart Helm<br/><small>oci://ghcr.io/.../charts</small>"]
+    end
+
+    Build -->|"push"| DockerImg
+    Release -->|"push"| HelmChart
+
+    subgraph Cluster["☸ Cluster K8s"]
+        ArgoSync["ArgoCD<br/><small>auto-sync</small>"]
+        Pod["Pod landing-page<br/><small>Gunicorn :8000</small>"]
+    end
+
+    HelmChart -.->|"sync"| ArgoSync
+    ArgoSync --> Pod
+```
 
 ## Fonctionnalités
 
