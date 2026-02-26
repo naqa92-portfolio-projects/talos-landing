@@ -18,6 +18,11 @@
       "matchManagers": ["pep621"],
       "matchUpdateTypes": ["minor", "major"],
       "minimumReleaseAge": "7 days"
+    },
+    {
+      "description": "Devbox — désactivé (risque de casse nix packaging)",
+      "matchManagers": ["devbox"],
+      "enabled": false
     }
   ]
 }
