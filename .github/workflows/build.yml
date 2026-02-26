@@ -63,6 +63,17 @@ jobs:
       - name: Build CSS
         run: tailwindcss -i ./app/static/css/input.css -o ./app/static/css/style.css --minify
 
+      - name: Ruff Lint
+        uses: astral-sh/ruff-action@v3
+        with:
+          args: "check"
+
+      - name: Run tests
+        run: |
+          pip install --quiet uv
+          uv sync --frozen --group dev
+          uv run pytest
+
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
