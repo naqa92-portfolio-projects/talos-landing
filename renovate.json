@@ -1,0 +1,23 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":semanticCommits"],
+  "packageRules": [
+    {
+      "description": "GitHub Actions — grouper",
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions"
+    },
+    {
+      "description": "Python deps — attendre 3j (patch)",
+      "matchManagers": ["pep621"],
+      "matchUpdateTypes": ["patch"],
+      "minimumReleaseAge": "3 days"
+    },
+    {
+      "description": "Python deps — attendre 7j (minor/major)",
+      "matchManagers": ["pep621"],
+      "matchUpdateTypes": ["minor", "major"],
+      "minimumReleaseAge": "7 days"
+    }
+  ]
+}

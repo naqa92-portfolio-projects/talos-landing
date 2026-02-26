@@ -19,6 +19,7 @@ env:
 
 jobs:
   version:
+    if: github.actor != 'renovate[bot]'
     runs-on: ubuntu-latest
     outputs:
       new-version: ${{ steps.version-check.outputs.new-version }}
