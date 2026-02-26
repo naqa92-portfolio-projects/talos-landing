@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-services
+  namespace: {{ .Release.Namespace }}
+data:
+  services.yaml: |
+    {{- .Values.servicesConfig | nindent 4 }}

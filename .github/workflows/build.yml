@@ -1,20 +1,53 @@
-name: Build & Push
+name: Build & Release
 
 on:
   push:
     branches: [main]
+
+permissions:
+  contents: write
+  packages: write
+  security-events: write
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      new-version: ${{ steps.version-check.outputs.new-version }}
+      version-changed: ${{ steps.version-check.outputs.version-changed }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Calculate next version
+        id: version-check
+        run: |
+          CURRENT_VERSION=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+          echo "current-version=$CURRENT_VERSION"
+
+          if git tag -l "v$CURRENT_VERSION" | grep -q "v$CURRENT_VERSION"; then
+            echo "Tag v$CURRENT_VERSION exists, incrementing patch..."
+            MAJOR=$(echo $CURRENT_VERSION | cut -d. -f1)
+            MINOR=$(echo $CURRENT_VERSION | cut -d. -f2)
+            PATCH=$(echo $CURRENT_VERSION | cut -d. -f3)
+            NEW_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
+          else
+            NEW_VERSION="$CURRENT_VERSION"
+          fi
+
+          echo "new-version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "version-changed=true" >> $GITHUB_OUTPUT
+          echo "Version: $NEW_VERSION"
+
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-      security-events: write
+    needs: [version]
 
     steps:
       - uses: actions/checkout@v4
@@ -37,23 +70,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=sha,prefix=
-            type=raw,value=latest
-
       - name: Build image
         uses: docker/build-push-action@v6
         with:
           context: .
           push: false
           load: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.version.outputs.new-version }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
       - name: Scan image for CVEs
         uses: aquasecurity/trivy-action@0.28.0
@@ -66,6 +91,70 @@ jobs:
 
       - name: Push image
         run: |
-          echo "${{ steps.meta.outputs.tags }}" | while IFS= read -r tag; do
-            docker push "$tag"
-          done
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.version.outputs.new-version }}
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [version, build]
+    if: needs.version.outputs.version-changed == 'true'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Sync versions
+        run: |
+          VERSION=${{ needs.version.outputs.new-version }}
+
+          sed -i "s/^version = .*/version = \"$VERSION\"/" pyproject.toml
+          sed -i "s/^version: .*/version: $VERSION/" charts/landing-page/Chart.yaml
+          sed -i "s/^appVersion: .*/appVersion: $VERSION/" charts/landing-page/Chart.yaml
+          sed -i "s/tag: \".*\"/tag: \"$VERSION\"/" charts/landing-page/values.yaml
+
+          echo "Synced all files to version: $VERSION"
+
+      - name: Log in to GHCR for Helm
+        run: helm registry login ghcr.io -u ${{ github.actor }} --password-stdin <<< "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Package and push Helm chart
+        run: |
+          VERSION=${{ needs.version.outputs.new-version }}
+          helm package charts/landing-page/ --version $VERSION --app-version $VERSION
+          helm push landing-page-$VERSION.tgz oci://ghcr.io/naqa92/charts
+          echo "Published: oci://ghcr.io/naqa92/charts/landing-page:$VERSION"
+
+      - name: Commit and tag
+        run: |
+          VERSION=${{ needs.version.outputs.new-version }}
+
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+          git add pyproject.toml charts/landing-page/Chart.yaml charts/landing-page/values.yaml
+
+          if ! git diff --staged --quiet; then
+            git commit -m "chore: release v$VERSION [skip ci]"
+            git push origin main
+          fi
+
+          git tag -a "v$VERSION" -m "Release v$VERSION"
+          git push origin "v$VERSION"
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: v${{ needs.version.outputs.new-version }}
+          name: v${{ needs.version.outputs.new-version }}
+          body: |
+            ## Artifacts
+            - **Docker image**: `ghcr.io/${{ github.repository }}:${{ needs.version.outputs.new-version }}`
+            - **Helm chart**: `oci://ghcr.io/naqa92/charts/landing-page:${{ needs.version.outputs.new-version }}`
+          draft: false
+          prerelease: false
+          token: ${{ secrets.GITHUB_TOKEN }}
