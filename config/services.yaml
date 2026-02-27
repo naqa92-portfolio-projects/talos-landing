@@ -27,3 +27,10 @@ services:
     name_en: Gatus
     desc_fr: Page de statut
     desc_en: Status page
+  n8n:
+    icon: workflow
+    url: https://n8n.taloslab.cc
+    name_fr: n8n
+    name_en: n8n
+    desc_fr: Automatisation de workflows
+    desc_en: Workflow automation
