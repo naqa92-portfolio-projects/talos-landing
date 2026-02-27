@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/naqa92-portfolio-projects/talos-landing
-  tag: "0.1.3"
+  tag: "0.1.4"
   pullPolicy: IfNotPresent
 
 imagePullSecrets:
