@@ -8,6 +8,8 @@ image:
 imagePullSecrets:
   - name: ghcr-registry-secret
 
+podAnnotations: {}
+
 port: 8000
 
 resources:
