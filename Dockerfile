@@ -18,7 +18,6 @@ RUN groupadd --gid 10001 landing && \
 
 COPY --from=builder /app/.venv .venv/
 COPY app/ app/
-COPY config/ config/
 
 ENV PATH="/app/.venv/bin:$PATH"
 
