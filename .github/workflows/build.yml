@@ -171,3 +171,54 @@ jobs:
           draft: false
           prerelease: false
           token: ${{ secrets.GITHUB_TOKEN }}
+
+  update-gitops:
+    runs-on: ubuntu-latest
+    needs: [version, release]
+    if: needs.version.outputs.version-changed == 'true'
+    steps:
+      - name: Checkout GitOps repo
+        uses: actions/checkout@v6
+        with:
+          repository: naqa92-portfolio-projects/talos-gitops
+          token: ${{ secrets.GITOPS_PAT }}
+
+      - name: Setup yq
+        uses: mikefarah/yq@v4
+
+      - name: Update versions
+        env:
+          VERSION: ${{ needs.version.outputs.new-version }}
+        run: |
+          APP_DIR=base/apps/landing-page
+          yq eval -i -o json '.chartVersion = strenv("VERSION")' "$APP_DIR/chart.json"
+          yq eval -i '.image.tag = strenv("VERSION")' "$APP_DIR/values.yaml"
+
+      - name: Create PR
+        env:
+          VERSION: ${{ needs.version.outputs.new-version }}
+          GH_TOKEN: ${{ secrets.GITOPS_PAT }}
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+          git switch --create release/landing-page-$VERSION
+
+          git add base/apps/landing-page/
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore(landing-page): bump to v${VERSION}"
+            git push origin release/landing-page-$VERSION
+
+            gh pr create \
+              --title "chore(landing-page): bump to v${VERSION}" \
+              --body "New release: \`v${VERSION}\`
+
+          ArgoCD Diff Preview will show the exact changes to your manifests.
+
+          Please review before merging to trigger the deployment." \
+              --base main \
+              --head release/landing-page-$VERSION \
+              --repo naqa92-portfolio-projects/talos-gitops
+          fi
