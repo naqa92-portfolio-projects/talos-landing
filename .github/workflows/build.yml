@@ -191,8 +191,8 @@ jobs:
           VERSION: ${{ needs.version.outputs.new-version }}
         run: |
           APP_DIR=base/apps/landing-page
-          yq eval -i -o json '.chartVersion = strenv("VERSION")' "$APP_DIR/chart.json"
-          yq eval -i '.image.tag = strenv("VERSION")' "$APP_DIR/values.yaml"
+          yq eval -i -o json '.chartVersion = env(VERSION)' "$APP_DIR/chart.json"
+          yq eval -i '.image.tag = env(VERSION)' "$APP_DIR/values.yaml"
 
       - name: Create PR
         env:
