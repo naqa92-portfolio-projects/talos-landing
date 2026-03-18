@@ -23,6 +23,6 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 EXPOSE 8000
 
-USER landing
+USER 10001
 
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "1", "--no-control-socket", "app:create_app()"]
