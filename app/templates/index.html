@@ -66,9 +66,9 @@
             <p class="text-[10px] text-slate-600 tracking-wider" x-show="lang === 'en'" x-cloak>Real metrics · Live Kubernetes API</p>
         </div>
 
-        {# Scroll indicator — hidden on mobile to avoid overlap #}
+        {# Scroll indicator #}
         <button @click="document.getElementById('cluster-stats').scrollIntoView({ behavior: 'smooth' })"
-                class="absolute bottom-8 hidden md:flex flex-col items-center gap-3 opacity-30 hover:opacity-100 transition-all duration-500 cursor-pointer"
+                class="absolute bottom-8 flex flex-col items-center gap-3 opacity-30 hover:opacity-100 transition-all duration-500 cursor-pointer"
                 aria-label="Scroll down">
             <span class="[writing-mode:vertical-lr] rotate-180 text-[10px] font-semibold tracking-[0.3em] uppercase text-slate-500 select-none">Scroll</span>
             <div class="relative w-0.5 h-16 overflow-hidden">

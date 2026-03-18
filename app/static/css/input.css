@@ -37,6 +37,12 @@
     animation: float 3s ease-in-out infinite;
 }
 
+@media (max-width: 767px) {
+    .animate-float {
+        animation: none;
+    }
+}
+
 /* Scroll indicator (portfolio-style sliding line) */
 @keyframes scroll-line {
     0% { transform: translateY(-100%); }
