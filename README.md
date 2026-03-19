@@ -62,25 +62,25 @@ flowchart LR
         direction TB
         Version["📦 Version<br/><small>semver depuis<br/>pyproject.toml</small>"]
         Build["🐳 Build<br/><small>TailwindCSS CLI<br/>Docker build<br/>Trivy scan</small>"]
-        Release["🚀 Release<br/><small>Bump versions<br/>Helm package<br/>Git tag + Release</small>"]
-        Version --> Build --> Release
+        Release["🚀 Release<br/><small>Bump versions<br/>Git tag + Release</small>"]
+        GitOps["📝 Update GitOps<br/><small>PR talos-gitops<br/>image tag</small>"]
+        Version --> Build --> Release --> GitOps
     end
 
-    subgraph Registries["📦 GHCR"]
+    subgraph GHCR["📦 GHCR"]
         DockerImg["Image Docker<br/><small>ghcr.io/.../talos-landing</small>"]
-        HelmChart["Chart Helm<br/><small>oci://ghcr.io/.../charts</small>"]
     end
 
     Build -->|"push"| DockerImg
-    Release -->|"push"| HelmChart
 
     subgraph Cluster["☸ Cluster K8s"]
         ArgoSync["ArgoCD<br/><small>auto-sync</small>"]
+        Crossplane["Crossplane<br/><small>App XR</small>"]
         Pod["Pod landing-page<br/><small>Gunicorn :8000</small>"]
     end
 
-    HelmChart -.->|"sync"| ArgoSync
-    ArgoSync --> Pod
+    GitOps -.->|"merge PR"| ArgoSync
+    ArgoSync --> Crossplane --> Pod
 ```
 
 ## Fonctionnalités
