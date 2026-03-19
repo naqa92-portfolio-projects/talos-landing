@@ -117,29 +117,10 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install Helm
-        uses: azure/setup-helm@v4
-
       - name: Sync versions
         run: |
           VERSION=${{ needs.version.outputs.new-version }}
-
           sed -i "s/^version = .*/version = \"$VERSION\"/" pyproject.toml
-          sed -i "s/^version: .*/version: $VERSION/" charts/landing-page/Chart.yaml
-          sed -i "s/^appVersion: .*/appVersion: $VERSION/" charts/landing-page/Chart.yaml
-          sed -i "s/tag: \".*\"/tag: \"$VERSION\"/" charts/landing-page/values.yaml
-
-          echo "Synced all files to version: $VERSION"
-
-      - name: Log in to GHCR for Helm
-        run: helm registry login ghcr.io -u ${{ github.actor }} --password-stdin <<< "${{ secrets.GITHUB_TOKEN }}"
-
-      - name: Package and push Helm chart
-        run: |
-          VERSION=${{ needs.version.outputs.new-version }}
-          helm package charts/landing-page/ --version $VERSION --app-version $VERSION
-          helm push landing-page-$VERSION.tgz oci://ghcr.io/naqa92-portfolio-projects/charts
-          echo "Published: oci://ghcr.io/naqa92-portfolio-projects/charts/landing-page:$VERSION"
 
       - name: Commit and tag
         run: |
@@ -148,7 +129,7 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
 
-          git add pyproject.toml charts/landing-page/Chart.yaml charts/landing-page/values.yaml
+          git add pyproject.toml
 
           if ! git diff --staged --quiet; then
             git commit -m "chore: release v$VERSION [skip ci]"
@@ -167,7 +148,6 @@ jobs:
           body: |
             ## Artifacts
             - **Docker image**: `ghcr.io/${{ github.repository }}:${{ needs.version.outputs.new-version }}`
-            - **Helm chart**: `oci://ghcr.io/naqa92-portfolio-projects/charts/landing-page:${{ needs.version.outputs.new-version }}`
           draft: false
           prerelease: false
           token: ${{ secrets.GITHUB_TOKEN }}
