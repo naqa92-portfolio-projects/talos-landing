@@ -175,7 +175,7 @@ jobs:
           VERSION: ${{ needs.version.outputs.new-version }}
         run: |
           APP_DIR=base/apps/landing-page
-          yq eval -i '.spec.image.tag = env(VERSION)' "$APP_DIR/app.yaml"
+          yq eval -i '.spec.tag = env(VERSION)' "$APP_DIR/app.yaml"
 
       - name: Create PR
         env:
