@@ -61,7 +61,7 @@ flowchart LR
     subgraph CI["⚙️ GitHub Actions"]
         direction TB
         Version["📦 Version<br/><small>semver depuis<br/>pyproject.toml</small>"]
-        Build["🐳 Build<br/><small>TailwindCSS CLI<br/>Docker build<br/>Trivy scan</small>"]
+        Build["🐳 Build<br/><small>TailwindCSS CLI<br/>Docker build<br/>Grype scan</small>"]
         Release["🚀 Release<br/><small>Bump versions<br/>Git tag + Release</small>"]
         GitOps["📝 Update GitOps<br/><small>PR talos-gitops<br/>image tag</small>"]
         Version --> Build --> Release --> GitOps
