@@ -1,6 +1,6 @@
 [project]
 name = "talos-landing"
-version = "0.1.17"
+version = "0.1.18"
 description = "Landing page for taloslab.cc — live Kubernetes metrics & infrastructure showcase"
 requires-python = ">=3.13"
 dependencies = [
