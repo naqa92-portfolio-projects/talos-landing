@@ -10,7 +10,7 @@ Landing page pour le homelab Kubernetes **taloslab.cc** — affiche en temps ré
 | -------- | ------------------------------------------------ |
 | Backend  | Flask + Gunicorn                                 |
 | Frontend | Jinja2 SSR, HTMX, TailwindCSS v4, AlpineJS       |
-| Données  | Kubernetes API (nodes, metrics-server, ArgoCD)   |
+| Données  | Kubernetes API (nodes, metrics, ArgoCD, HTTPRoutes) |
 | Design   | Glassmorphism, Plus Jakarta Sans, JetBrains Mono |
 
 ## Architecture
@@ -38,8 +38,8 @@ flowchart TB
         Argo["ArgoCD API<br/><small>Applications</small>"]
     end
 
-    subgraph Config["📄 Configuration"]
-        SvcYAML["services.yaml<br/><small>ConfigMap</small>"]
+    subgraph K8sGw["🌐 Gateway API"]
+        HTTPRoutes["HTTPRoutes<br/><small>annotated</small>"]
     end
 
     HTML -->|"GET /"| Routes
@@ -51,7 +51,7 @@ flowchart TB
     K8sClient --> Nodes
     K8sClient --> Metrics
     K8sClient --> Argo
-    K8sClient --> SvcYAML
+    K8sClient --> HTTPRoutes
 ```
 
 Build & Release
@@ -117,7 +117,6 @@ docker run -p 8000:8000 talos-landing
 | Variable               | Défaut                  | Description                        |
 | ---------------------- | ----------------------- | ---------------------------------- |
 | `CACHE_TTL_SECONDS`    | `30`                    | TTL du cache des données K8s       |
-| `SERVICES_CONFIG_PATH` | `/config/services.yaml` | Chemin vers la config des services |
 
 ## Structure
 
@@ -125,13 +124,11 @@ docker run -p 8000:8000 talos-landing
 app/
 ├── __init__.py          # Factory Flask
 ├── config.py            # Variables de configuration
-├── k8s.py               # Client Kubernetes (nodes, metrics, ArgoCD)
+├── k8s.py               # Client Kubernetes (nodes, metrics, ArgoCD, HTTPRoutes)
 ├── routes.py            # Routes Flask + partials HTMX
 ├── static/css/          # TailwindCSS (input + build)
 └── templates/
     ├── base.html         # Layout principal
     ├── index.html        # Page d'accueil
     └── partials/         # Fragments HTMX (cluster_stats, infra_cards, service_cards)
-config/
-└── services.yaml        # Métadonnées des services exposés
 ```
