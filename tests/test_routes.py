@@ -19,13 +19,10 @@ FAKE_INFRA = [
 
 FAKE_SERVICES = [
     {
-        "name": "gitea",
+        "name": "Gitea",
+        "desc": "Git forge",
         "icon": "git-branch",
         "url": "https://git.example.com",
-        "name_fr": "Gitea",
-        "name_en": "Gitea",
-        "desc_fr": "Forge Git",
-        "desc_en": "Git forge",
         "health": "Healthy",
         "sync": "Synced",
     },

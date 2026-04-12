@@ -3,10 +3,9 @@
 import time
 from typing import Any
 
-import yaml
 from kubernetes import client, config as k8s_config
 
-from app.config import CACHE_TTL_SECONDS, SERVICES_CONFIG_PATH
+from app.config import CACHE_TTL_SECONDS, K8S_TIMEOUT_SECONDS
 
 # ---------------------------------------------------------------------------
 # Cache
@@ -43,27 +42,9 @@ def _get_clients():
 
 
 # ---------------------------------------------------------------------------
-# services.yaml (loaded once)
-# ---------------------------------------------------------------------------
-
-_services_meta: dict | None = None
-
-
-def _load_services_meta() -> dict:
-    global _services_meta
-    if _services_meta is None:
-        try:
-            with open(SERVICES_CONFIG_PATH) as f:
-                data = yaml.safe_load(f)
-            _services_meta = data.get("services", {})
-        except Exception:
-            _services_meta = {}
-    return _services_meta
-
-
-# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _format_uptime(seconds: float) -> str:
     days = int(seconds // 86400)
@@ -94,6 +75,7 @@ def _parse_memory(value: str) -> float:
 # Public API
 # ---------------------------------------------------------------------------
 
+
 def get_cluster_stats() -> dict:
     return _cached("cluster_stats", _fetch_cluster_stats)
 
@@ -110,13 +92,14 @@ def get_services() -> list[dict]:
 # Fetchers
 # ---------------------------------------------------------------------------
 
+
 def _fetch_cluster_stats() -> dict:
     clients = _get_clients()
     core: client.CoreV1Api = clients["core"]
     custom: client.CustomObjectsApi = clients["custom"]
 
     try:
-        nodes = core.list_node().items
+        nodes = core.list_node(_request_timeout=K8S_TIMEOUT_SECONDS).items
     except Exception:
         return {
             "uptime": "N/A",
@@ -128,17 +111,15 @@ def _fetch_cluster_stats() -> dict:
         }
 
     # Uptime from oldest node
-    oldest_ts = min(
-        n.metadata.creation_timestamp for n in nodes
-    )
-    uptime_sec = (time.time() - oldest_ts.timestamp())
+    oldest_ts = min(n.metadata.creation_timestamp for n in nodes)
+    uptime_sec = time.time() - oldest_ts.timestamp()
     uptime = _format_uptime(uptime_sec)
 
     # Node readiness
     nodes_total = len(nodes)
     nodes_ready = 0
     for n in nodes:
-        for cond in (n.status.conditions or []):
+        for cond in n.status.conditions or []:
             if cond.type == "Ready" and cond.status == "True":
                 nodes_ready += 1
                 break
@@ -150,7 +131,10 @@ def _fetch_cluster_stats() -> dict:
     ram_percent = None
     try:
         metrics = custom.list_cluster_custom_object(
-            "metrics.k8s.io", "v1beta1", "nodes"
+            "metrics.k8s.io",
+            "v1beta1",
+            "nodes",
+            _request_timeout=K8S_TIMEOUT_SECONDS,
         )
         total_cpu_usage = 0.0
         total_cpu_alloc = 0.0
@@ -191,7 +175,11 @@ def _fetch_infra_apps() -> list[dict]:
 
     try:
         apps = custom.list_namespaced_custom_object(
-            "argoproj.io", "v1alpha1", "argocd", "applications"
+            "argoproj.io",
+            "v1alpha1",
+            "argocd",
+            "applications",
+            _request_timeout=K8S_TIMEOUT_SECONDS,
         )
     except Exception:
         return []
@@ -202,45 +190,68 @@ def _fetch_infra_apps() -> list[dict]:
         if spec.get("project") != "infra":
             continue
         st = app.get("status", {})
-        result.append({
-            "name": app["metadata"]["name"],
-            "health": st.get("health", {}).get("status", "Unknown"),
-            "sync": st.get("sync", {}).get("status", "Unknown"),
-        })
+        result.append(
+            {
+                "name": app["metadata"]["name"],
+                "health": st.get("health", {}).get("status", "Unknown"),
+                "sync": st.get("sync", {}).get("status", "Unknown"),
+            }
+        )
     return result
 
 
 def _fetch_services() -> list[dict]:
     clients = _get_clients()
     custom: client.CustomObjectsApi = clients["custom"]
-    meta = _load_services_meta()
-
-    if not meta:
-        return []
 
     try:
-        apps = custom.list_namespaced_custom_object(
-            "argoproj.io", "v1alpha1", "argocd", "applications"
+        routes = custom.list_cluster_custom_object(
+            "gateway.networking.k8s.io",
+            "v1",
+            "httproutes",
+            _request_timeout=K8S_TIMEOUT_SECONDS,
         )
     except Exception:
         return []
 
+    try:
+        apps = custom.list_namespaced_custom_object(
+            "argoproj.io",
+            "v1alpha1",
+            "argocd",
+            "applications",
+            _request_timeout=K8S_TIMEOUT_SECONDS,
+        )
+        apps_by_name = {a["metadata"]["name"]: a for a in apps.get("items", [])}
+    except Exception:
+        apps_by_name = {}
+
     result = []
-    for app in apps.get("items", []):
-        name = app["metadata"]["name"]
-        if name not in meta:
+    for route in routes.get("items", []):
+        annotations = route.get("metadata", {}).get("annotations", {})
+        if annotations.get("taloslab.cc/visible") != "true":
             continue
-        info = meta[name]
+
+        hostnames = route.get("spec", {}).get("hostnames", [])
+        url = f"https://{hostnames[0]}" if hostnames else ""
+
+        argocd_key = annotations.get(
+            "taloslab.cc/argocd-app",
+            route["metadata"].get("namespace", ""),
+        )
+        app = apps_by_name.get(argocd_key, {})
         st = app.get("status", {})
-        result.append({
-            "name": name,
-            "icon": info.get("icon", "box"),
-            "url": info.get("url", ""),
-            "name_fr": info.get("name_fr", name),
-            "name_en": info.get("name_en", name),
-            "desc_fr": info.get("desc_fr", ""),
-            "desc_en": info.get("desc_en", ""),
-            "health": st.get("health", {}).get("status", "Unknown"),
-            "sync": st.get("sync", {}).get("status", "Unknown"),
-        })
+
+        result.append(
+            {
+                "name": annotations.get(
+                    "taloslab.cc/name", route["metadata"].get("name", "")
+                ),
+                "desc": annotations.get("taloslab.cc/desc", ""),
+                "icon": annotations.get("taloslab.cc/icon", "box"),
+                "url": url,
+                "health": st.get("health", {}).get("status", "Unknown"),
+                "sync": st.get("sync", {}).get("status", "Unknown"),
+            }
+        )
     return result

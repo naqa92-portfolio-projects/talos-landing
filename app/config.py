@@ -4,4 +4,4 @@ import os
 
 CACHE_TTL_SECONDS = int(os.environ.get("CACHE_TTL_SECONDS", "30"))
 
-SERVICES_CONFIG_PATH = os.environ.get("SERVICES_CONFIG_PATH", "/config/services.yaml")
+K8S_TIMEOUT_SECONDS = int(os.environ.get("K8S_TIMEOUT_SECONDS", "3"))
