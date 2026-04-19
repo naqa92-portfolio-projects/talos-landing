@@ -70,7 +70,7 @@ jobs:
         with:
           args: "check"
 
-      - uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@v8
 
       - name: Run tests
         run: |
