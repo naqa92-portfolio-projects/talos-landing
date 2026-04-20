@@ -231,6 +231,8 @@ def _fetch_services() -> list[dict]:
         annotations = route.get("metadata", {}).get("annotations", {})
         if annotations.get("taloslab.cc/visible") != "true":
             continue
+        if annotations.get("taloslab.cc/name") == "landing-page":
+            continue
 
         hostnames = route.get("spec", {}).get("hostnames", [])
         url = f"https://{hostnames[0]}" if hostnames else ""
