@@ -2,16 +2,28 @@
 
 > **https://taloslab.cc**
 
-Landing page pour le homelab Kubernetes **taloslab.cc** — affiche en temps réel les métriques du cluster, les composants d'infrastructure et les services déployés.
+Landing page vitrine pour le homelab Kubernetes **taloslab.cc** — affiche en temps réel les métriques du cluster, les composants d'infrastructure et les services déployés.
+
+## À propos du projet
+
+Ce repo est la **seule partie publique** de l'écosystème `taloslab.cc`. Tout le core - Talos, GitOps (ArgoCD), Crossplane, Backstage, observabilité, sécurité, CI/CD - vit dans des repos privés.
+
+Un aperçu de ces repos privés reste accessible via des **démos vidéo**.
+
+### Démo vidéo : talos-backstage
+
+Tour complet de la plateforme Backstage (catalogue, templates, intégrations Kubernetes/ArgoCD/Crossplane) :
+
+[![Démo talos-backstage E2E](img/thumbnail1.jpeg)](https://www.youtube.com/watch?v=OeuiQiAS6uA)
 
 ## Stack
 
-| Couche   | Technologie                                      |
-| -------- | ------------------------------------------------ |
-| Backend  | Flask + Gunicorn                                 |
-| Frontend | Jinja2 SSR, HTMX, TailwindCSS v4, AlpineJS       |
+| Couche   | Technologie                                         |
+| -------- | --------------------------------------------------- |
+| Backend  | Flask + Gunicorn                                    |
+| Frontend | Jinja2 SSR, HTMX, TailwindCSS v4, AlpineJS          |
 | Données  | Kubernetes API (nodes, metrics, ArgoCD, HTTPRoutes) |
-| Design   | Glassmorphism, Plus Jakarta Sans, JetBrains Mono |
+| Design   | Glassmorphism, Plus Jakarta Sans, JetBrains Mono    |
 
 ## Architecture
 
@@ -114,9 +126,9 @@ docker run -p 8000:8000 talos-landing
 
 ## Configuration
 
-| Variable               | Défaut                  | Description                        |
-| ---------------------- | ----------------------- | ---------------------------------- |
-| `CACHE_TTL_SECONDS`    | `30`                    | TTL du cache des données K8s       |
+| Variable            | Défaut | Description                  |
+| ------------------- | ------ | ---------------------------- |
+| `CACHE_TTL_SECONDS` | `30`   | TTL du cache des données K8s |
 
 ## Structure
 
