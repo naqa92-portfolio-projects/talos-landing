@@ -30,11 +30,11 @@
         {# Tagline bilingue #}
         <p x-show="lang === 'fr'" x-cloak
            class="text-lg md:text-xl text-slate-400 font-light max-w-2xl mx-auto leading-relaxed tracking-wide mt-6 text-center">
-            Cluster Kubernetes sur Hetzner. OS immuable Talos, réseau eBPF Cilium, GitOps via ArgoCD — zero-trust par défaut.
+            Cluster Kubernetes sur Hetzner. OS immuable Talos, réseau eBPF Cilium, GitOps via Flux + Crossplane — zero-trust par défaut.
         </p>
         <p x-show="lang === 'en'" x-cloak
            class="text-lg md:text-xl text-slate-400 font-light max-w-2xl mx-auto leading-relaxed tracking-wide mt-6 text-center">
-            Kubernetes cluster on Hetzner. Immutable Talos OS, Cilium eBPF networking, GitOps via ArgoCD — zero-trust by default.
+            Kubernetes cluster on Hetzner. Immutable Talos OS, Cilium eBPF networking, GitOps via Flux + Crossplane — zero-trust by default.
         </p>
 
         {# Explore button #}
@@ -97,8 +97,8 @@
     <section class="max-w-7xl mx-auto px-6 py-16">
         <div class="mb-10">
             <h2 class="text-3xl md:text-4xl font-bold text-white">Infrastructure</h2>
-            <p x-show="lang === 'fr'" x-cloak class="text-sm text-slate-400 mt-2 tracking-wide">Composants du cluster · synchronisés depuis ArgoCD</p>
-            <p x-show="lang === 'en'" x-cloak class="text-sm text-slate-400 mt-2 tracking-wide">Cluster components · synced from ArgoCD</p>
+            <p x-show="lang === 'fr'" x-cloak class="text-sm text-slate-400 mt-2 tracking-wide">Composants du cluster · synchronisés via Flux + Crossplane</p>
+            <p x-show="lang === 'en'" x-cloak class="text-sm text-slate-400 mt-2 tracking-wide">Cluster components · synced via Flux + Crossplane</p>
         </div>
         <div hx-get="/partials/infra-cards" hx-trigger="load, every 30s" hx-swap="innerHTML">
             {% include "partials/infra_cards.html" %}

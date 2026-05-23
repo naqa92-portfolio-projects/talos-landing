@@ -251,14 +251,19 @@ def _fetch_services() -> list[dict]:
         hostnames = route.get("spec", {}).get("hostnames", [])
         url = f"https://{hostnames[0]}" if hostnames else ""
 
+        # External services (taloslab.cc/external=true) bypass status lookup —
+        # e.g. Flux Operator Web UI is bootstrapped via Terraform, not GitOps.
         # HTTPRoute name == resource name (HR or XR App) by convention.
         # Annotation taloslab.cc/flux-resource overrides for non-conventional
         # cases (e.g. HTTPRoute grafana → HR victoria-metrics-k8s-stack).
-        resource_key = annotations.get(
-            "taloslab.cc/flux-resource",
-            route["metadata"].get("name", ""),
-        )
-        resource = resources.get(resource_key, {})
+        if annotations.get("taloslab.cc/external") == "true":
+            health = "Healthy"
+        else:
+            resource_key = annotations.get(
+                "taloslab.cc/flux-resource",
+                route["metadata"].get("name", ""),
+            )
+            health = _flux_health(resources.get(resource_key, {}))
 
         result.append(
             {
@@ -268,7 +273,7 @@ def _fetch_services() -> list[dict]:
                 "desc": annotations.get("taloslab.cc/desc", ""),
                 "icon": annotations.get("taloslab.cc/icon", "box"),
                 "url": url,
-                "health": _flux_health(resource),
+                "health": health,
             }
         )
     return result
