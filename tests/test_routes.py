@@ -14,7 +14,7 @@ FAKE_STATS = {
 }
 
 FAKE_INFRA = [
-    {"name": "cert-manager", "health": "Healthy", "sync": "Synced"},
+    {"name": "cert-manager", "health": "Healthy"},
 ]
 
 FAKE_SERVICES = [
@@ -24,7 +24,6 @@ FAKE_SERVICES = [
         "icon": "git-branch",
         "url": "https://git.example.com",
         "health": "Healthy",
-        "sync": "Synced",
     },
 ]
 
