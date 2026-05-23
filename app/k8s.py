@@ -1,4 +1,4 @@
-"""Kubernetes API client — nodes, metrics, Flux HelmReleases."""
+"""Kubernetes API client — nodes, metrics, Flux HelmReleases + Crossplane XR Apps."""
 
 import time
 from typing import Any
@@ -177,29 +177,51 @@ def _flux_health(resource: dict) -> str:
     return "Unknown"
 
 
-def _list_helmreleases(custom: client.CustomObjectsApi) -> list[dict]:
-    releases = custom.list_namespaced_custom_object(
-        "helm.toolkit.fluxcd.io",
-        "v2",
-        "flux-system",
-        "helmreleases",
-        _request_timeout=K8S_TIMEOUT_SECONDS,
-    )
-    return releases.get("items", [])
+def _fetch_gitops_resources() -> dict[str, dict]:
+    """Return all GitOps-managed resources keyed by name.
+
+    Unifies Flux HelmReleases (infra) and Crossplane XR Apps (business apps)
+    — same conceptual role as ArgoCD Applications: a single list of
+    deployable units regardless of underlying mechanism.
+    """
+    clients = _get_clients()
+    custom: client.CustomObjectsApi = clients["custom"]
+    result: dict[str, dict] = {}
+
+    try:
+        hrs = custom.list_namespaced_custom_object(
+            "helm.toolkit.fluxcd.io",
+            "v2",
+            "flux-system",
+            "helmreleases",
+            _request_timeout=K8S_TIMEOUT_SECONDS,
+        )
+        for hr in hrs.get("items", []):
+            result[hr["metadata"]["name"]] = hr
+    except Exception:
+        pass
+
+    try:
+        apps = custom.list_cluster_custom_object(
+            "taloslab.cc",
+            "v1alpha1",
+            "apps",
+            _request_timeout=K8S_TIMEOUT_SECONDS,
+        )
+        for app in apps.get("items", []):
+            result[app["metadata"]["name"]] = app
+    except Exception:
+        pass
+
+    return result
 
 
 def _fetch_infra_apps() -> list[dict]:
-    clients = _get_clients()
-    custom: client.CustomObjectsApi = clients["custom"]
-
-    try:
-        items = _list_helmreleases(custom)
-    except Exception:
-        return []
-
-    return [
-        {"name": hr["metadata"]["name"], "health": _flux_health(hr)} for hr in items
-    ]
+    resources = _fetch_gitops_resources()
+    return sorted(
+        [{"name": name, "health": _flux_health(r)} for name, r in resources.items()],
+        key=lambda x: x["name"],
+    )
 
 
 def _fetch_services() -> list[dict]:
@@ -216,12 +238,7 @@ def _fetch_services() -> list[dict]:
     except Exception:
         return []
 
-    try:
-        releases_by_name = {
-            hr["metadata"]["name"]: hr for hr in _list_helmreleases(custom)
-        }
-    except Exception:
-        releases_by_name = {}
+    resources = _fetch_gitops_resources()
 
     result = []
     for route in routes.get("items", []):
@@ -234,13 +251,14 @@ def _fetch_services() -> list[dict]:
         hostnames = route.get("spec", {}).get("hostnames", [])
         url = f"https://{hostnames[0]}" if hostnames else ""
 
-        # Fallback on route name because all Flux HRs live in flux-system ns
-        # (M3 convention) — namespace is no longer discriminant.
-        hr_key = annotations.get(
-            "taloslab.cc/flux-helmrelease",
-            route["metadata"].get("name", ""),
+        # Convention: HTTPRoute name == "<resource>-route" (matches HR or XR App).
+        # Annotation taloslab.cc/flux-resource overrides for non-conventional cases
+        # (e.g. HTTPRoute grafana → HR victoria-metrics-k8s-stack).
+        resource_key = annotations.get(
+            "taloslab.cc/flux-resource",
+            route["metadata"].get("name", "").removesuffix("-route"),
         )
-        hr = releases_by_name.get(hr_key, {})
+        resource = resources.get(resource_key, {})
 
         result.append(
             {
@@ -250,7 +268,7 @@ def _fetch_services() -> list[dict]:
                 "desc": annotations.get("taloslab.cc/desc", ""),
                 "icon": annotations.get("taloslab.cc/icon", "box"),
                 "url": url,
-                "health": _flux_health(hr),
+                "health": _flux_health(resource),
             }
         )
     return result
