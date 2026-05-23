@@ -251,12 +251,12 @@ def _fetch_services() -> list[dict]:
         hostnames = route.get("spec", {}).get("hostnames", [])
         url = f"https://{hostnames[0]}" if hostnames else ""
 
-        # Convention: HTTPRoute name == "<resource>-route" (matches HR or XR App).
-        # Annotation taloslab.cc/flux-resource overrides for non-conventional cases
-        # (e.g. HTTPRoute grafana → HR victoria-metrics-k8s-stack).
+        # HTTPRoute name == resource name (HR or XR App) by convention.
+        # Annotation taloslab.cc/flux-resource overrides for non-conventional
+        # cases (e.g. HTTPRoute grafana → HR victoria-metrics-k8s-stack).
         resource_key = annotations.get(
             "taloslab.cc/flux-resource",
-            route["metadata"].get("name", "").removesuffix("-route"),
+            route["metadata"].get("name", ""),
         )
         resource = resources.get(resource_key, {})
 
