@@ -1,4 +1,4 @@
-{# HTMX partial — public service cards (ArgoCD + HTTPRoute annotations) #}
+{# HTMX partial — public service cards (Flux HelmRelease + HTTPRoute annotations) #}
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-stats-refresh">
 {% for service in services %}
     <a href="{{ service.url }}" target="_blank" rel="noopener"

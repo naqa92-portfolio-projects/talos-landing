@@ -1,4 +1,4 @@
-{# HTMX partial — infrastructure cards from ArgoCD applications #}
+{# HTMX partial — infrastructure cards from Flux HelmReleases #}
 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-stats-refresh">
 {% for app in infra_apps %}
     <div class="glass glass-hover p-5 rounded-2xl transition-all duration-300">
@@ -22,10 +22,6 @@
             {% endif %}
         </div>
         <div class="flex gap-2">
-            <span class="text-[10px] font-medium tracking-wider uppercase
-                {% if app.sync == 'Synced' %}text-blue-400{% else %}text-orange-400{% endif %}">
-                {{ app.sync }}
-            </span>
             <span class="text-[10px] font-medium tracking-wider uppercase
                 {% if app.health == 'Healthy' %}text-emerald-400{% else %}text-yellow-400{% endif %}">
                 {{ app.health }}

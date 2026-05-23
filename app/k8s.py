@@ -1,4 +1,4 @@
-"""Kubernetes API client — nodes, metrics, ArgoCD applications."""
+"""Kubernetes API client — nodes, metrics, Flux HelmReleases."""
 
 import time
 from typing import Any
@@ -169,35 +169,37 @@ def _fetch_cluster_stats() -> dict:
     }
 
 
+def _flux_health(resource: dict) -> str:
+    """Map Flux Ready condition → landing-page health label."""
+    for cond in resource.get("status", {}).get("conditions", []):
+        if cond.get("type") == "Ready":
+            return "Healthy" if cond.get("status") == "True" else "Degraded"
+    return "Unknown"
+
+
+def _list_helmreleases(custom: client.CustomObjectsApi) -> list[dict]:
+    releases = custom.list_namespaced_custom_object(
+        "helm.toolkit.fluxcd.io",
+        "v2",
+        "flux-system",
+        "helmreleases",
+        _request_timeout=K8S_TIMEOUT_SECONDS,
+    )
+    return releases.get("items", [])
+
+
 def _fetch_infra_apps() -> list[dict]:
     clients = _get_clients()
     custom: client.CustomObjectsApi = clients["custom"]
 
     try:
-        apps = custom.list_namespaced_custom_object(
-            "argoproj.io",
-            "v1alpha1",
-            "argocd",
-            "applications",
-            _request_timeout=K8S_TIMEOUT_SECONDS,
-        )
+        items = _list_helmreleases(custom)
     except Exception:
         return []
 
-    result = []
-    for app in apps.get("items", []):
-        spec = app.get("spec", {})
-        if spec.get("project") != "infra":
-            continue
-        st = app.get("status", {})
-        result.append(
-            {
-                "name": app["metadata"]["name"],
-                "health": st.get("health", {}).get("status", "Unknown"),
-                "sync": st.get("sync", {}).get("status", "Unknown"),
-            }
-        )
-    return result
+    return [
+        {"name": hr["metadata"]["name"], "health": _flux_health(hr)} for hr in items
+    ]
 
 
 def _fetch_services() -> list[dict]:
@@ -215,16 +217,11 @@ def _fetch_services() -> list[dict]:
         return []
 
     try:
-        apps = custom.list_namespaced_custom_object(
-            "argoproj.io",
-            "v1alpha1",
-            "argocd",
-            "applications",
-            _request_timeout=K8S_TIMEOUT_SECONDS,
-        )
-        apps_by_name = {a["metadata"]["name"]: a for a in apps.get("items", [])}
+        releases_by_name = {
+            hr["metadata"]["name"]: hr for hr in _list_helmreleases(custom)
+        }
     except Exception:
-        apps_by_name = {}
+        releases_by_name = {}
 
     result = []
     for route in routes.get("items", []):
@@ -237,12 +234,13 @@ def _fetch_services() -> list[dict]:
         hostnames = route.get("spec", {}).get("hostnames", [])
         url = f"https://{hostnames[0]}" if hostnames else ""
 
-        argocd_key = annotations.get(
-            "taloslab.cc/argocd-app",
-            route["metadata"].get("namespace", ""),
+        # Fallback on route name because all Flux HRs live in flux-system ns
+        # (M3 convention) — namespace is no longer discriminant.
+        hr_key = annotations.get(
+            "taloslab.cc/flux-helmrelease",
+            route["metadata"].get("name", ""),
         )
-        app = apps_by_name.get(argocd_key, {})
-        st = app.get("status", {})
+        hr = releases_by_name.get(hr_key, {})
 
         result.append(
             {
@@ -252,8 +250,7 @@ def _fetch_services() -> list[dict]:
                 "desc": annotations.get("taloslab.cc/desc", ""),
                 "icon": annotations.get("taloslab.cc/icon", "box"),
                 "url": url,
-                "health": st.get("health", {}).get("status", "Unknown"),
-                "sync": st.get("sync", {}).get("status", "Unknown"),
+                "health": _flux_health(hr),
             }
         )
     return result
