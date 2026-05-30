@@ -163,7 +163,7 @@ jobs:
       - name: Checkout GitOps repo
         uses: actions/checkout@v6
         with:
-          repository: naqa92-portfolio-projects/talos-gitops
+          repository: naqa92-portfolio-projects/talos-fluxcd
           token: ${{ secrets.GITOPS_PAT }}
 
       - name: Setup yq
@@ -173,7 +173,7 @@ jobs:
         env:
           VERSION: ${{ needs.version.outputs.new-version }}
         run: |
-          APP_DIR=base/apps/landing-page
+          APP_DIR=apps/prod/landing-page
           IMAGE_BASE=$(yq '.spec.image' "$APP_DIR/app.yaml" | cut -d: -f1)
           yq eval -i ".spec.image = \"${IMAGE_BASE}:${VERSION}\"" "$APP_DIR/app.yaml"
 
@@ -187,7 +187,7 @@ jobs:
 
           git switch --create release/landing-page-$VERSION
 
-          git add base/apps/landing-page/
+          git add apps/prod/landing-page/
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
@@ -198,10 +198,10 @@ jobs:
               --title "chore(landing-page): bump to v${VERSION}" \
               --body "New release: \`v${VERSION}\`
 
-          ArgoCD Diff Preview will show the exact changes to your manifests.
+          Flux will reconcile automatically after merge.
 
           Please review before merging to trigger the deployment." \
               --base main \
               --head release/landing-page-$VERSION \
-              --repo naqa92-portfolio-projects/talos-gitops
+              --repo naqa92-portfolio-projects/talos-fluxcd
           fi
