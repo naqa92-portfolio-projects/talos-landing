@@ -1,10 +1,12 @@
 {
   "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/main/.schema/devbox.schema.json",
   "packages": [
-    "tailwindcss_4@4.1.18"
+    "tailwindcss_4@latest"
   ],
   "shell": {
-    "init_hook": [""],
+    "init_hook": [
+      ""
+    ],
     "scripts": {
       "css:build": "tailwindcss -i ./app/static/css/input.css -o ./app/static/css/style.css --minify",
       "css:watch": "tailwindcss -i ./app/static/css/input.css -o ./app/static/css/style.css --watch"
