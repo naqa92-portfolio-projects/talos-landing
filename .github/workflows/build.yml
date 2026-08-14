@@ -30,7 +30,7 @@ jobs:
       version-changed: ${{ steps.version-check.outputs.version-changed }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -52,7 +52,7 @@ jobs:
     needs: [version]
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
@@ -66,11 +66,11 @@ jobs:
         run: tailwindcss -i ./app/static/css/input.css -o ./app/static/css/style.css --minify
 
       - name: Ruff Lint
-        uses: astral-sh/ruff-action@v3
+        uses: astral-sh/ruff-action@v4.1.0
         with:
           args: "check"
 
-      - uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@v10.0.1
 
       - name: Run tests
         run: |
@@ -115,7 +115,7 @@ jobs:
     if: needs.version.outputs.version-changed == 'true'
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -161,7 +161,7 @@ jobs:
     if: needs.version.outputs.version-changed == 'true'
     steps:
       - name: Checkout GitOps repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: naqa92-portfolio-projects/talos-fluxcd
           token: ${{ secrets.GITOPS_PAT }}
