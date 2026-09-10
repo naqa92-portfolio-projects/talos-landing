@@ -1,11 +1,22 @@
 """Kubernetes API client — nodes, metrics, Flux HelmReleases + Crossplane XR Apps."""
 
+import logging
 import time
 from typing import Any
 
-from kubernetes import client, config as k8s_config
+from kubernetes import client
+from kubernetes import config as k8s_config
+from kubernetes.client.exceptions import ApiException
+from urllib3.exceptions import HTTPError as Urllib3Error
 
 from app.config import CACHE_TTL_SECONDS, K8S_TIMEOUT_SECONDS
+
+logger = logging.getLogger(__name__)
+
+# Le dashboard doit rester affichable quand le cluster ne répond pas : erreurs HTTP de l'API
+# (ApiException), coupures et timeouts réseau (urllib3), et payloads partiels côté CRD.
+API_ERRORS = (ApiException, Urllib3Error)
+PAYLOAD_ERRORS = (KeyError, TypeError)
 
 # ---------------------------------------------------------------------------
 # Cache
@@ -100,7 +111,8 @@ def _fetch_cluster_stats() -> dict:
 
     try:
         nodes = core.list_node(_request_timeout=K8S_TIMEOUT_SECONDS).items
-    except Exception:
+    except API_ERRORS as exc:
+        logger.warning("Liste des nodes indisponible: %s", exc)
         return {
             "uptime": "N/A",
             "nodes_ready": 0,
@@ -156,8 +168,8 @@ def _fetch_cluster_stats() -> dict:
             cpu_percent = round(total_cpu_usage / total_cpu_alloc * 100, 1)
         if total_mem_alloc > 0:
             ram_percent = round(total_mem_usage / total_mem_alloc * 100, 1)
-    except Exception:
-        pass
+    except (*API_ERRORS, *PAYLOAD_ERRORS) as exc:
+        logger.info("Métriques CPU/RAM indisponibles: %s", exc)
 
     return {
         "uptime": uptime,
@@ -198,8 +210,8 @@ def _fetch_gitops_resources() -> dict[str, dict]:
         )
         for hr in hrs.get("items", []):
             result[hr["metadata"]["name"]] = hr
-    except Exception:
-        pass
+    except (*API_ERRORS, *PAYLOAD_ERRORS) as exc:
+        logger.info("HelmReleases Flux indisponibles: %s", exc)
 
     try:
         apps = custom.list_cluster_custom_object(
@@ -210,8 +222,8 @@ def _fetch_gitops_resources() -> dict[str, dict]:
         )
         for app in apps.get("items", []):
             result[app["metadata"]["name"]] = app
-    except Exception:
-        pass
+    except (*API_ERRORS, *PAYLOAD_ERRORS) as exc:
+        logger.info("XR Apps Crossplane indisponibles: %s", exc)
 
     return result
 
@@ -235,7 +247,8 @@ def _fetch_services() -> list[dict]:
             "httproutes",
             _request_timeout=K8S_TIMEOUT_SECONDS,
         )
-    except Exception:
+    except API_ERRORS as exc:
+        logger.warning("HTTPRoutes indisponibles: %s", exc)
         return []
 
     resources = _fetch_gitops_resources()
