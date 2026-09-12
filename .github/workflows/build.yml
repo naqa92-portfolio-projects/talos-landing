@@ -163,7 +163,7 @@ jobs:
       - name: Checkout GitOps repo
         uses: actions/checkout@v7
         with:
-          repository: naqa92-portfolio-projects/talos-fluxcd
+          repository: naqa92-portfolio-projects/talos-argocd
           token: ${{ secrets.GITOPS_PAT }}
 
       - name: Setup yq
@@ -198,10 +198,10 @@ jobs:
               --title "chore(landing-page): bump to v${VERSION}" \
               --body "New release: \`v${VERSION}\`
 
-          Flux will reconcile automatically after merge.
+          ArgoCD will sync automatically after merge.
 
           Please review before merging to trigger the deployment." \
               --base main \
               --head release/landing-page-$VERSION \
-              --repo naqa92-portfolio-projects/talos-fluxcd
+              --repo naqa92-portfolio-projects/talos-argocd
           fi

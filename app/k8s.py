@@ -1,4 +1,4 @@
-"""Kubernetes API client — nodes, metrics, Flux HelmReleases + Crossplane XR Apps."""
+"""Kubernetes API client — nodes, metrics, ArgoCD Applications + Crossplane XR Apps."""
 
 import logging
 import time
@@ -188,37 +188,39 @@ def _fetch_cluster_stats() -> dict:
     }
 
 
-def _flux_health(resource: dict) -> str:
-    """Map Flux Ready condition → landing-page health label."""
+def _ready_condition_health(resource: dict) -> str:
+    """Map a Ready condition → landing-page health label."""
     for cond in resource.get("status", {}).get("conditions", []):
         if cond.get("type") == "Ready":
             return "Healthy" if cond.get("status") == "True" else "Degraded"
     return "Unknown"
 
 
-def _fetch_gitops_resources() -> dict[str, dict]:
-    """Return all GitOps-managed resources keyed by name.
+def _fetch_gitops_resources() -> dict[str, str]:
+    """Return the health of every GitOps-managed unit, keyed by name.
 
-    Unifies Flux HelmReleases (infra) and Crossplane XR Apps (business apps)
-    — same conceptual role as ArgoCD Applications: a single list of
-    deployable units regardless of underlying mechanism.
+    Unifies ArgoCD Applications (infra) and Crossplane XR Apps (business apps)
+    into a single list of deployable units. The two report health differently:
+    an Application carries it in status.health.status, an XR in its Ready
+    condition — hence the health is resolved here rather than by the callers.
     """
     clients = _get_clients()
     custom: client.CustomObjectsApi = clients["custom"]
-    result: dict[str, dict] = {}
+    result: dict[str, str] = {}
 
     try:
-        hrs = custom.list_namespaced_custom_object(
-            "helm.toolkit.fluxcd.io",
-            "v2",
-            "flux-system",
-            "helmreleases",
+        argo_apps = custom.list_namespaced_custom_object(
+            "argoproj.io",
+            "v1alpha1",
+            "argocd",
+            "applications",
             _request_timeout=K8S_TIMEOUT_SECONDS,
         )
-        for hr in hrs.get("items", []):
-            result[hr["metadata"]["name"]] = hr
+        for argo_app in argo_apps.get("items", []):
+            health = argo_app.get("status", {}).get("health", {}).get("status")
+            result[argo_app["metadata"]["name"]] = health or "Unknown"
     except (*API_ERRORS, *PAYLOAD_ERRORS) as exc:
-        logger.info("HelmReleases Flux indisponibles: %s", exc)
+        logger.info("Applications ArgoCD indisponibles: %s", exc)
 
     try:
         apps = custom.list_cluster_custom_object(
@@ -228,7 +230,7 @@ def _fetch_gitops_resources() -> dict[str, dict]:
             _request_timeout=K8S_TIMEOUT_SECONDS,
         )
         for app in apps.get("items", []):
-            result[app["metadata"]["name"]] = app
+            result[app["metadata"]["name"]] = _ready_condition_health(app)
     except (*API_ERRORS, *PAYLOAD_ERRORS) as exc:
         logger.info("XR Apps Crossplane indisponibles: %s", exc)
 
@@ -238,30 +240,46 @@ def _fetch_gitops_resources() -> dict[str, dict]:
 def _fetch_infra_apps() -> list[dict]:
     resources = _fetch_gitops_resources()
     return sorted(
-        [{"name": name, "health": _flux_health(r)} for name, r in resources.items()],
+        [{"name": name, "health": health} for name, health in resources.items()],
         key=lambda x: x["name"],
     )
 
 
-def _fetch_services() -> list[dict]:
+def _fetch_routes() -> list[dict]:
+    """Return every Gateway API route that can carry a service card.
+
+    ArgoCD is exposed as a TLSRoute and not an HTTPRoute: Cilium cannot pass
+    gRPC through an HTTPRoute (cilium#31933). Both kinds are read so a service
+    card does not depend on how its traffic is routed.
+    """
     clients = _get_clients()
     custom: client.CustomObjectsApi = clients["custom"]
+    routes: list[dict] = []
 
-    try:
-        routes = custom.list_cluster_custom_object(
-            "gateway.networking.k8s.io",
-            "v1",
-            "httproutes",
-            _request_timeout=K8S_TIMEOUT_SECONDS,
-        )
-    except API_ERRORS as exc:
-        logger.warning("HTTPRoutes indisponibles: %s", exc)
+    for version, plural in (("v1", "httproutes"), ("v1alpha2", "tlsroutes")):
+        try:
+            listed = custom.list_cluster_custom_object(
+                "gateway.networking.k8s.io",
+                version,
+                plural,
+                _request_timeout=K8S_TIMEOUT_SECONDS,
+            )
+            routes.extend(listed.get("items", []))
+        except API_ERRORS as exc:
+            logger.warning("%s indisponibles: %s", plural, exc)
+
+    return routes
+
+
+def _fetch_services() -> list[dict]:
+    routes = _fetch_routes()
+    if not routes:
         return []
 
     resources = _fetch_gitops_resources()
 
     result = []
-    for route in routes.get("items", []):
+    for route in routes:
         annotations = route.get("metadata", {}).get("annotations", {})
         if annotations.get("taloslab.cc/visible") != "true":
             continue
@@ -272,18 +290,18 @@ def _fetch_services() -> list[dict]:
         url = f"https://{hostnames[0]}" if hostnames else ""
 
         # External services (taloslab.cc/external=true) bypass status lookup —
-        # e.g. Flux Operator Web UI is bootstrapped via Terraform, not GitOps.
-        # HTTPRoute name == resource name (HR or XR App) by convention.
-        # Annotation taloslab.cc/flux-resource overrides for non-conventional
-        # cases (e.g. HTTPRoute grafana → HR victoria-metrics-k8s-stack).
+        # they are not deployed by GitOps.
+        # Route name == resource name (Application or XR App) by convention.
+        # Annotation taloslab.cc/argocd-app overrides for non-conventional cases
+        # (e.g. HTTPRoute grafana → Application victoria-metrics-k8s-stack).
         if annotations.get("taloslab.cc/external") == "true":
             health = "Healthy"
         else:
             resource_key = annotations.get(
-                "taloslab.cc/flux-resource",
+                "taloslab.cc/argocd-app",
                 route["metadata"].get("name", ""),
             )
-            health = _flux_health(resources.get(resource_key, {}))
+            health = resources.get(resource_key, "Unknown")
 
         result.append(
             {
