@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
-from app import create_app
+from app import create_app, fixtures, k8s
 
 FAKE_STATS = {
     "uptime": "10d 5h",
@@ -66,3 +66,22 @@ def test_healthz(client):
     resp = client.get("/healthz")
     assert resp.status_code == 200
     assert resp.data == b"ok"
+
+
+@patch("app.k8s.MOCK_MODE", True)
+def test_mock_mode_returns_fixtures():
+    assert k8s.get_cluster_stats() == fixtures.CLUSTER_STATS
+    assert k8s.get_infra_apps() == fixtures.INFRA_APPS
+    assert k8s.get_services() == fixtures.SERVICES
+
+
+@patch("app.k8s.MOCK_MODE", True)
+def test_index_renders_without_cluster(client):
+    """Aucun client Kubernetes n'est construit : sans cluster ni kubeconfig,
+    _get_clients lèverait ConfigException et la page renverrait 500."""
+    resp = client.get("/")
+
+    assert resp.status_code == 200
+    assert b"127d 8h" in resp.data
+    assert b"argo-cd" in resp.data
+    assert b"Grafana" in resp.data

@@ -9,7 +9,8 @@ from kubernetes import config as k8s_config
 from kubernetes.client.exceptions import ApiException
 from urllib3.exceptions import HTTPError as Urllib3Error
 
-from app.config import CACHE_TTL_SECONDS, K8S_TIMEOUT_SECONDS
+from app import fixtures
+from app.config import CACHE_TTL_SECONDS, K8S_TIMEOUT_SECONDS, MOCK_MODE
 
 logger = logging.getLogger(__name__)
 
@@ -88,14 +89,20 @@ def _parse_memory(value: str) -> float:
 
 
 def get_cluster_stats() -> dict:
+    if MOCK_MODE:
+        return fixtures.CLUSTER_STATS
     return _cached("cluster_stats", _fetch_cluster_stats)
 
 
 def get_infra_apps() -> list[dict]:
+    if MOCK_MODE:
+        return fixtures.INFRA_APPS
     return _cached("infra_apps", _fetch_infra_apps)
 
 
 def get_services() -> list[dict]:
+    if MOCK_MODE:
+        return fixtures.SERVICES
     return _cached("services", _fetch_services)
 
 

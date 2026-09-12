@@ -9,7 +9,8 @@
     ],
     "scripts": {
       "css:build": "tailwindcss -i ./app/static/css/input.css -o ./app/static/css/style.css --minify",
-      "css:watch": "tailwindcss -i ./app/static/css/input.css -o ./app/static/css/style.css --watch"
+      "css:watch": "tailwindcss -i ./app/static/css/input.css -o ./app/static/css/style.css --watch",
+      "dev": "TALOS_MOCK=1 uv run flask --app app run --debug"
     }
   }
 }

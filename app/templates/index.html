@@ -1,116 +1,114 @@
 {% extends "base.html" %}
+{% from "partials/_i18n.html" import t, t_block %}
 
 {% block content %}
 <main>
     {# ── Navbar ── #}
-    <nav class="fixed top-0 left-0 right-0 z-50 glass">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-            <a href="/" class="text-lg font-bold tracking-tight text-white">
-                taloslab<span class="text-purple-500">.cc</span>
+    <nav class="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-deep/60 backdrop-blur-xl backdrop-saturate-150">
+        <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-3.5">
+            <a href="/" class="font-display text-lg font-extrabold tracking-[-0.03em] text-ink">
+                taloslab<span class="text-xenon">.cc</span>
             </a>
             <button @click="lang = lang === 'fr' ? 'en' : 'fr'"
-                    class="glass glass-hover px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wider uppercase text-slate-300">
-                <span x-show="lang === 'fr'" x-cloak>FR</span>
-                <span x-show="lang === 'en'" x-cloak>EN</span>
+                    class="inline-flex min-h-10 min-w-10 items-center justify-center rounded-full border border-white/10 px-4 font-mono text-[11px] font-medium tracking-[0.2em] text-muted transition-[color,border-color,background-color,scale] duration-200 hover:border-xenon/40 hover:text-ink active:scale-[0.96]"
+                    :aria-label="lang === 'fr' ? 'Switch to English' : 'Passer en français'">
+                {# Affiche la langue cible, pas la langue courante : c'est ce que le clic donne. #}
+                {{ t("EN", "FR") }}
             </button>
         </div>
     </nav>
 
-    {# ── Hero Section ── #}
-    <section class="relative min-h-screen w-full flex flex-col items-center justify-center px-6 py-20 overflow-hidden">
-        {# Ambient glows #}
-        <div class="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-purple-500/20 rounded-full blur-[150px] pointer-events-none"></div>
-        <div class="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-indigo-500/15 rounded-full blur-[150px] pointer-events-none"></div>
-
-        {# Title #}
-        <h1 class="text-7xl md:text-9xl font-extrabold tracking-tighter text-white text-glow animate-float">
-            <span class="bg-clip-text text-transparent bg-linear-to-b from-white to-white/40">taloslab</span><span class="text-purple-500">.cc</span>
+    {# ── Hero ── #}
+    {# min-h-svh, pas min-h-screen : 100vh change quand la barre d'URL mobile se
+       replie, ce qui reflow le hero en pleine page et fait « sauter » le scroll. #}
+    <section class="flex min-h-svh w-full flex-col items-center justify-center px-6 pt-28 pb-20 text-center">
+        <h1 class="reveal font-display text-[clamp(3rem,12vw,6rem)] font-black tracking-[-0.045em] text-ink [text-shadow:0_0_24px_rgba(123,232,255,0.25),0_0_90px_rgba(123,232,255,0.16)]">
+            taloslab<span class="text-xenon">.cc</span>
         </h1>
 
-        {# Tagline bilingue #}
-        <p x-show="lang === 'fr'" x-cloak
-           class="text-lg md:text-xl text-slate-400 font-light max-w-2xl mx-auto leading-relaxed tracking-wide mt-6 text-center">
-            Cluster Kubernetes sur cloud souverain. Réseau eBPF Cilium, GitOps via Flux + Crossplane — zero-trust par défaut.
-        </p>
-        <p x-show="lang === 'en'" x-cloak
-           class="text-lg md:text-xl text-slate-400 font-light max-w-2xl mx-auto leading-relaxed tracking-wide mt-6 text-center">
-            Kubernetes cluster on sovereign cloud. Cilium eBPF networking, GitOps via Flux + Crossplane — zero-trust by default.
+        <p class="reveal mt-7 max-w-2xl text-base leading-relaxed text-muted [animation-delay:90ms] md:text-lg">
+            {{ t_block(
+                "Cluster Kubernetes sur Hetzner. Réseau eBPF Cilium, GitOps par ArgoCD + Crossplane — zero-trust par défaut.",
+                "Kubernetes cluster on Hetzner. Cilium eBPF networking, GitOps via ArgoCD + Crossplane — zero-trust by default."
+            ) }}
         </p>
 
-        {# Explore button #}
-        <button @click="document.getElementById('cluster-stats').scrollIntoView({ behavior: 'smooth' })"
-                class="glass glass-hover mt-10 px-8 py-3 rounded-xl text-sm font-semibold tracking-wider uppercase text-purple-300 inline-flex items-center gap-2 transition-all duration-300">
-            <span x-show="lang === 'fr'" x-cloak>Explorer le cluster</span>
-            <span x-show="lang === 'en'" x-cloak>Explore Cluster</span>
-            <i data-lucide="chevron-down" class="w-4 h-4"></i>
+        <button @click="document.getElementById('cluster').scrollIntoView({ behavior: 'smooth' })"
+                class="glass reveal group mt-10 inline-flex items-center gap-2.5 rounded-full px-7 py-3.5 font-mono text-xs font-medium tracking-[0.18em] uppercase text-xenon transition-[scale,box-shadow] duration-200 [animation-delay:180ms] active:scale-[0.96]">
+            {{ t("Explorer le cluster", "Explore the cluster") }}
+            <i data-lucide="arrow-down" class="size-4 transition-transform duration-300 group-hover:translate-y-0.5"></i>
         </button>
 
-        {# Status indicator #}
-        <div class="mt-8 flex flex-col items-center gap-1.5">
-            <div class="flex items-center gap-2">
-                {% if stats.status == "ONLINE" %}
-                <span class="relative flex h-2.5 w-2.5">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 motion-reduce:animate-none"></span>
-                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                </span>
-                <span class="text-xs font-semibold tracking-widest uppercase text-emerald-400">{{ stats.status }}</span>
-                {% else %}
-                <span class="relative flex h-2.5 w-2.5">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75 motion-reduce:animate-none"></span>
-                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-yellow-500"></span>
-                </span>
-                <span class="text-xs font-semibold tracking-widest uppercase text-yellow-400">{{ stats.status }}</span>
-                {% endif %}
-            </div>
-            <p class="text-[10px] text-slate-600 tracking-wider" x-show="lang === 'fr'" x-cloak>Métriques réelles · API Kubernetes live</p>
-            <p class="text-[10px] text-slate-600 tracking-wider" x-show="lang === 'en'" x-cloak>Real metrics · Live Kubernetes API</p>
+        {# Le seul indicateur vivant du hero : l'état réel du cluster. #}
+        <div class="reveal mt-12 inline-flex items-center gap-2.5 rounded-full border border-white/10 px-4 py-2 [animation-delay:270ms]">
+            {% if stats.status == "ONLINE" %}
+            <span class="relative flex size-2.5">
+                <span class="absolute inline-flex size-full animate-ping rounded-full bg-pass opacity-75 motion-reduce:animate-none"></span>
+                <span class="relative inline-flex size-2.5 rounded-full bg-pass"></span>
+            </span>
+            <span class="font-mono text-[11px] font-medium tracking-[0.2em] uppercase text-pass">{{ stats.status }}</span>
+            {% else %}
+            <span class="relative flex size-2.5">
+                <span class="absolute inline-flex size-full animate-ping rounded-full bg-tension opacity-75 motion-reduce:animate-none"></span>
+                <span class="relative inline-flex size-2.5 rounded-full bg-tension"></span>
+            </span>
+            <span class="font-mono text-[11px] font-medium tracking-[0.2em] uppercase text-tension">{{ stats.status }}</span>
+            {% endif %}
+            <span class="h-3 w-px bg-white/15"></span>
+            <span class="font-mono text-[11px] tracking-[0.12em] text-muted">
+                {{ t("lu sur l'API Kubernetes", "read from the Kubernetes API") }}
+            </span>
         </div>
-
-        {# Scroll indicator #}
-        <button @click="document.getElementById('cluster-stats').scrollIntoView({ behavior: 'smooth' })"
-                class="absolute bottom-8 hidden md:flex flex-col items-center gap-3 opacity-30 hover:opacity-100 transition-all duration-500 cursor-pointer"
-                aria-label="Scroll down">
-            <span class="[writing-mode:vertical-lr] rotate-180 text-[10px] font-semibold tracking-[0.3em] uppercase text-slate-500 select-none">Scroll</span>
-            <div class="relative w-0.5 h-16 overflow-hidden">
-                <div class="absolute inset-0 bg-linear-to-b from-purple-500 via-purple-400/60 to-transparent"></div>
-                <div class="absolute inset-0 w-full h-full bg-[#050508] animate-[scroll-line_2s_ease-in-out_infinite]"></div>
-            </div>
-        </button>
     </section>
 
-    {# ── Cluster Stats ── #}
-    <section id="cluster-stats" class="max-w-7xl mx-auto px-6 py-16">
-        <div class="flex items-center gap-2 mb-4">
-            <span class="relative flex h-2 w-2">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 motion-reduce:animate-none"></span>
-                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <span class="text-[10px] font-semibold tracking-[0.2em] uppercase text-emerald-400" x-show="lang === 'fr'" x-cloak>Métriques en direct · API Kubernetes</span>
-            <span class="text-[10px] font-semibold tracking-[0.2em] uppercase text-emerald-400" x-show="lang === 'en'" x-cloak>Live metrics · Kubernetes API</span>
+    {# ── Cluster ── #}
+    <section id="cluster" class="mx-auto max-w-7xl scroll-mt-24 px-6 py-16">
+        <div class="mb-10">
+            <h2 class="font-display text-3xl font-extrabold tracking-[-0.04em] text-balance text-ink md:text-4xl">
+                {{ t("Cluster", "Cluster") }}
+            </h2>
+            <p class="mt-2 text-sm text-muted">
+                {{ t_block(
+                    "Trois nœuds Talos Linux · métriques rafraîchies toutes les 30 secondes.",
+                    "Three Talos Linux nodes · metrics refreshed every 30 seconds."
+                ) }}
+            </p>
         </div>
         <div hx-get="/partials/cluster-stats" hx-trigger="load, every 30s" hx-swap="innerHTML">
             {% include "partials/cluster_stats.html" %}
         </div>
     </section>
 
-    {# ── Infrastructure Section ── #}
-    <section class="max-w-7xl mx-auto px-6 py-16">
+    {# ── Infrastructure ── #}
+    <section class="mx-auto max-w-7xl px-6 py-16">
         <div class="mb-10">
-            <h2 class="text-3xl md:text-4xl font-bold text-white">Infrastructure</h2>
-            <p x-show="lang === 'fr'" x-cloak class="text-sm text-slate-400 mt-2 tracking-wide">Composants du cluster · synchronisés via Flux + Crossplane</p>
-            <p x-show="lang === 'en'" x-cloak class="text-sm text-slate-400 mt-2 tracking-wide">Cluster components · synced via Flux + Crossplane</p>
+            <h2 class="font-display text-3xl font-extrabold tracking-[-0.04em] text-balance text-ink md:text-4xl">
+                Infrastructure
+            </h2>
+            <p class="mt-2 text-sm text-muted">
+                {{ t_block(
+                    "Composants du cluster, réconciliés par ArgoCD et Crossplane.",
+                    "Cluster components, reconciled by ArgoCD and Crossplane."
+                ) }}
+            </p>
         </div>
         <div hx-get="/partials/infra-cards" hx-trigger="load, every 30s" hx-swap="innerHTML">
             {% include "partials/infra_cards.html" %}
         </div>
     </section>
 
-    {# ── Services Section ── #}
-    <section class="max-w-7xl mx-auto px-6 py-16">
+    {# ── Services ── #}
+    <section class="mx-auto max-w-7xl px-6 py-16">
         <div class="mb-10">
-            <h2 class="text-3xl md:text-4xl font-bold text-white">Services</h2>
-            <p x-show="lang === 'fr'" x-cloak class="text-sm text-slate-400 mt-2 tracking-wide">Endpoints publics · statut en direct</p>
-            <p x-show="lang === 'en'" x-cloak class="text-sm text-slate-400 mt-2 tracking-wide">Public endpoints · live status</p>
+            <h2 class="font-display text-3xl font-extrabold tracking-[-0.04em] text-balance text-ink md:text-4xl">
+                Services
+            </h2>
+            <p class="mt-2 text-sm text-muted">
+                {{ t_block(
+                    "Endpoints publics exposés par la Gateway, avec leur état réel.",
+                    "Public endpoints exposed through the Gateway, with their real state."
+                ) }}
+            </p>
         </div>
         <div hx-get="/partials/service-cards" hx-trigger="load, every 30s" hx-swap="innerHTML">
             {% include "partials/service_cards.html" %}
@@ -118,16 +116,14 @@
     </section>
 
     {# ── Footer ── #}
-    <footer class="glass mt-16">
-        <div class="max-w-7xl mx-auto px-6 py-12">
-            <div class="flex items-center justify-between">
-                <a href="https://portfolio.ndebaa.com" target="_blank" rel="noopener"
-                   class="flex items-center gap-2 text-sm text-slate-400 hover:text-purple-400 transition-colors">
-                    <i data-lucide="globe" class="w-4 h-4"></i>
-                    <span>Portfolio</span>
-                </a>
-                <span class="text-xs text-slate-700 font-['JetBrains_Mono']">taloslab.cc</span>
-            </div>
+    <footer class="mt-16 border-t border-white/10">
+        <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-6 py-12">
+            <a href="https://portfolio.ndebaa.com" target="_blank" rel="noopener"
+               class="group inline-flex min-h-10 items-center gap-2 text-sm text-muted transition-colors duration-200 hover:text-xenon">
+                <span>Portfolio</span>
+                <i data-lucide="arrow-up-right" class="size-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"></i>
+            </a>
+            <span class="font-mono text-xs tracking-[0.2em] text-muted">taloslab.cc</span>
         </div>
     </footer>
 </main>

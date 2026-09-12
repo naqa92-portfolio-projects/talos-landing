@@ -1,0 +1,11 @@
+{# Libellés bilingues. `t` pour l'inline, `t_block` quand les deux variantes
+   n'ont pas la même hauteur : la grille les empile dans la même cellule, ce qui
+   fige la hauteur avant le boot d'Alpine et évite un saut de mise en page. #}
+
+{% macro t(fr, en) -%}
+<span x-show="lang === 'fr'" x-cloak>{{ fr }}</span><span x-show="lang === 'en'" x-cloak>{{ en }}</span>
+{%- endmacro %}
+
+{% macro t_block(fr, en) -%}
+<span class="grid"><span class="col-start-1 row-start-1" x-show="lang === 'fr'" x-cloak>{{ fr }}</span><span class="col-start-1 row-start-1" x-show="lang === 'en'" x-cloak>{{ en }}</span></span>
+{%- endmacro %}

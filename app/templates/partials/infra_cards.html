@@ -1,32 +1,28 @@
-{# HTMX partial — infrastructure cards from Flux HelmReleases #}
-<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-stats-refresh">
-{% for app in infra_apps %}
-    <div class="glass glass-hover p-5 rounded-2xl transition-all duration-300">
-        <div class="flex items-center justify-between mb-3">
-            <span class="text-sm font-semibold text-white">{{ app.name }}</span>
-            {% if app.health == "Healthy" %}
-            <span class="relative flex h-2 w-2">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 motion-reduce:animate-none"></span>
-                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            {% elif app.health == "Degraded" %}
-            <span class="relative flex h-2 w-2">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 motion-reduce:animate-none"></span>
-                <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-            </span>
-            {% else %}
-            <span class="relative flex h-2 w-2">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75 motion-reduce:animate-none"></span>
-                <span class="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
-            </span>
-            {% endif %}
+{# Partial HTMX — composants d'infrastructure. Liste dense plutôt que grille de
+   vignettes : la donnée est tabulaire (un nom, un état) et la liste tient une
+   dizaine de lignes sans casser le scan sur mobile. #}
+{% from "partials/_i18n.html" import t_block %}
+{% from "partials/_ui.html" import health_dot, health_label %}
+
+{% if infra_apps %}
+<div class="panel rounded-solid p-2">
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
+        {% for app in infra_apps %}
+        {# Nom et état groupés à gauche : aux deux bords opposés, chaque ligne
+           coûte une saccade du regard sur une liste de cette densité. #}
+        <div class="flex min-w-0 items-center gap-2.5 rounded-lg px-4 py-3 transition-colors duration-200 hover:bg-white/4">
+            {{ health_dot(app.health) }}
+            <span class="truncate font-mono text-[13px] text-ink">{{ app.name }}</span>
+            <span class="shrink-0">{{ health_label(app.health) }}</span>
         </div>
-        <div class="flex gap-2">
-            <span class="text-[10px] font-medium tracking-wider uppercase
-                {% if app.health == 'Healthy' %}text-emerald-400{% else %}text-yellow-400{% endif %}">
-                {{ app.health }}
-            </span>
-        </div>
+        {% endfor %}
     </div>
-{% endfor %}
 </div>
+{% else %}
+<p class="panel rounded-solid px-6 py-8 text-center text-sm text-muted">
+    {{ t_block(
+        "Aucun composant remonté par l'API du cluster.",
+        "No component reported by the cluster API."
+    ) }}
+</p>
+{% endif %}

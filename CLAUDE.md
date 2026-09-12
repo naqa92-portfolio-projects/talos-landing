@@ -82,7 +82,7 @@ Landing page for `taloslab.cc` — Flask SSR + HTMX + TailwindCSS v4.
 - **Backend**: Flask + Gunicorn
 - **Frontend**: Jinja2 SSR + HTMX + TailwindCSS v4 + AlpineJS
 - **Data**: Kubernetes API (nodes, metrics, ArgoCD applications)
-- **Design**: Glassmorphism (see `design-system.md` in `talos-infra`)
+- **Design**: palette « Xénon » — tokens dans `app/static/css/input.css`, source de vérité dans le skill `/youtube-identity` (`references/design-tokens.json`)
 
 ## TailwindCSS
 
@@ -97,7 +97,8 @@ tailwindcss -i ./app/static/css/input.css -o ./app/static/css/style.css --watch 
 
 ```bash
 uv sync
-uv run flask --app app run --debug
+devbox run dev                        # TALOS_MOCK=1 — fixtures, aucun cluster requis
+uv run flask --app app run --debug    # contre le vrai cluster (kubeconfig courant)
 ```
 
 ## Docker

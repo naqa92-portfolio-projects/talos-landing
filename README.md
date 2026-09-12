@@ -23,7 +23,7 @@ Tour complet de la plateforme Backstage (catalogue, templates, intégrations Kub
 | Backend  | Flask + Gunicorn                                    |
 | Frontend | Jinja2 SSR, HTMX, TailwindCSS v4, AlpineJS          |
 | Données  | Kubernetes API (nodes, metrics, ArgoCD, HTTPRoutes) |
-| Design   | Glassmorphism, Plus Jakarta Sans, JetBrains Mono    |
+| Design   | Palette Xénon, Archivo / Manrope / JetBrains Mono   |
 
 ## Architecture
 
@@ -109,13 +109,21 @@ flowchart LR
 # Installer les dépendances
 uv sync
 
-# Lancer le serveur de dev
+# Lancer le serveur de dev sur des données factices (aucun cluster requis)
+devbox run dev
+# équivalent : TALOS_MOCK=1 uv run flask --app app run --debug
+
+# Lancer contre le vrai cluster (kubeconfig courant)
 uv run flask --app app run --debug
 
 # Build CSS (nécessite Devbox)
 devbox run css:build   # Build minifié
 devbox run css:watch   # Watch mode
 ```
+
+`TALOS_MOCK=1` sert `app/fixtures.py` à la place de l'API Kubernetes : c'est le
+mode à utiliser pour travailler l'UI. Le mode est opt-in explicite — un défaut
+implicite ferait passer un ServiceAccount cassé pour un cluster sain.
 
 ## Docker
 
@@ -126,9 +134,11 @@ docker run -p 8000:8000 talos-landing
 
 ## Configuration
 
-| Variable            | Défaut | Description                  |
-| ------------------- | ------ | ---------------------------- |
-| `CACHE_TTL_SECONDS` | `30`   | TTL du cache des données K8s |
+| Variable              | Défaut | Description                                          |
+| --------------------- | ------ | ---------------------------------------------------- |
+| `CACHE_TTL_SECONDS`   | `30`   | TTL du cache des données K8s                         |
+| `K8S_TIMEOUT_SECONDS` | `3`    | Timeout des appels à l'API Kubernetes                |
+| `TALOS_MOCK`          | `off`  | `1` sert `app/fixtures.py` au lieu de l'API (dev UI) |
 
 ## Structure
 
@@ -136,11 +146,12 @@ docker run -p 8000:8000 talos-landing
 app/
 ├── __init__.py          # Factory Flask
 ├── config.py            # Variables de configuration
+├── fixtures.py          # Données factices servies quand TALOS_MOCK=1
 ├── k8s.py               # Client Kubernetes (nodes, metrics, ArgoCD, HTTPRoutes)
 ├── routes.py            # Routes Flask + partials HTMX
 ├── static/css/          # TailwindCSS (input + build)
 └── templates/
     ├── base.html         # Layout principal
     ├── index.html        # Page d'accueil
-    └── partials/         # Fragments HTMX (cluster_stats, infra_cards, service_cards)
+    └── partials/         # Fragments HTMX + macros (_i18n, _ui)
 ```

@@ -1,24 +1,179 @@
 @import "tailwindcss";
 
-@layer components {
-    .glass {
-        background: rgba(15, 15, 25, 0.4);
-        backdrop-filter: blur(16px) saturate(180%);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+/* Palette, typo et surfaces « Xénon » — valeurs issues du design system de la
+   chaîne (youtube-identity/design-tokens.json). Toute valeur chiffrée vient de
+   là : une divergence ici est un défaut, pas une variante. */
+@theme {
+    --color-void: #05070b;
+    --color-deep: #0b1017;
+    --color-panel: #121a24;
+
+    --color-ink: #eef3f8;
+    --color-muted: rgba(238, 243, 248, 0.66);
+    --color-faint: rgba(238, 243, 248, 0.4);
+
+    --color-xenon: #7be8ff;
+    --color-iris: #9a7bff;
+    --color-tension: #ffb25c;
+    --color-pass: #6be3a2;
+    --color-fail: #ff7a6b;
+
+    --font-display: "Archivo", sans-serif;
+    --font-text: "Manrope", system-ui, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+    --radius-glass: 20px;
+    --radius-solid: 16px;
+
+    --ease-overlay: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ------------------------------------------------------------------ */
+/* Surfaces                                                            */
+/* ------------------------------------------------------------------ */
+
+/* Verre flottant : navbar, CTA, pastilles. Arêtes éclairées par le haut et la
+   gauche — une bordure uniforme lit comme un rectangle translucide. */
+@utility glass {
+    background:
+        linear-gradient(
+            to bottom,
+            rgba(255, 255, 255, 0.16),
+            rgba(255, 255, 255, 0.03)
+        ),
+        rgba(11, 16, 23, 0.55);
+    backdrop-filter: blur(24px) saturate(1.5);
+    border: 1px solid;
+    border-top-color: rgba(255, 255, 255, 0.19);
+    border-left-color: rgba(255, 255, 255, 0.09);
+    border-right-color: rgba(255, 255, 255, 0.06);
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+    box-shadow:
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.13),
+        0 24px 60px -26px rgba(0, 0, 0, 0.85);
+}
+
+/* Surface de lecture, sans blur : les cartes portent du texte, et un
+   backdrop-filter par carte se repaint à chaque frame de scroll. */
+@utility panel {
+    background: rgba(18, 26, 36, 0.92);
+    border: 1px solid;
+    border-top-color: rgba(255, 255, 255, 0.14);
+    border-left-color: rgba(255, 255, 255, 0.08);
+    border-right-color: rgba(255, 255, 255, 0.06);
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+    box-shadow:
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.06),
+        0 18px 40px -24px rgba(0, 0, 0, 0.9);
+}
+
+/* État « chargé » : l'élément dont on parle maintenant. C'est la bordure qui
+   dit la charge, le halo reste discret. */
+@utility charged {
+    border-color: rgba(123, 232, 255, 0.55);
+    box-shadow:
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
+        0 18px 40px -22px rgba(0, 0, 0, 0.9),
+        0 0 24px 0 rgba(123, 232, 255, 0.14);
+}
+
+@utility lift {
+    transition-property: border-color, box-shadow;
+    transition-duration: 320ms;
+    transition-timing-function: var(--ease-overlay);
+}
+
+/* ------------------------------------------------------------------ */
+/* Fond                                                                */
+/* ------------------------------------------------------------------ */
+
+/* Blooms immobiles : Xénon en haut à gauche, Iris en bas à droite. En
+   radial-gradient fixe plutôt qu'en div floutée — un blur(150px) sur 600px se
+   repaint à chaque frame de scroll et c'est la première cause de saccade. */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(
+            60rem 45rem at 12% -10%,
+            rgba(123, 232, 255, 0.18),
+            transparent 70%
+        ),
+        radial-gradient(
+            55rem 40rem at 88% 110%,
+            rgba(154, 123, 255, 0.15),
+            transparent 70%
+        );
+}
+
+/* Grain : sans lui les dégradés du fond bandent en 8 bits, très visible sur
+   écran OLED. Couche statique, au-dessus de tout, transparente aux clics. */
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ------------------------------------------------------------------ */
+/* Surfaces navigateur                                                 */
+/* ------------------------------------------------------------------ */
+
+html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(123, 232, 255, 0.28) transparent;
+}
+
+body {
+    /* Coupe le rebond élastique en bout de page, qui lit comme un saut. */
+    overscroll-behavior-y: none;
+    text-wrap: pretty;
+}
+
+::selection {
+    background: rgba(123, 232, 255, 0.28);
+    color: var(--color-ink);
+}
+
+:focus-visible {
+    outline: 2px solid var(--color-xenon);
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Motion                                                             */
+/* ------------------------------------------------------------------ */
+
+@keyframes reveal {
+    from {
+        opacity: 0;
+        transform: translateY(28px);
     }
-    .glass-hover {
-        transition: all 0.3s ease;
+    to {
+        opacity: 1;
+        transform: none;
     }
-    .glass-hover:hover {
-        background: rgba(255, 255, 255, 0.08);
-        border-color: rgba(168, 85, 247, 0.3);
-        box-shadow: 0 0 30px rgba(168, 85, 247, 0.1);
+}
+
+@utility reveal {
+    animation: reveal 320ms var(--ease-overlay) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
     }
-    .text-glow {
-        text-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
-    }
-    .circle-gauge {
-        transition: stroke-dashoffset 1s ease-out;
+    .reveal {
+        animation: none;
     }
 }
 
@@ -26,39 +181,4 @@
     [x-cloak] {
         display: none !important;
     }
-}
-
-@keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-}
-
-.animate-float {
-    animation: float 3s ease-in-out infinite;
-}
-
-@media (max-width: 767px) {
-    .animate-float {
-        animation: none;
-    }
-}
-
-/* Scroll indicator (portfolio-style sliding line) */
-@keyframes scroll-line {
-    0% { transform: translateY(-100%); }
-    100% { transform: translateY(100%); }
-}
-
-/* Fade-in on HTMX partial refresh */
-@keyframes stats-refresh {
-    from { opacity: 0.5; transform: translateY(4px); }
-    to   { opacity: 1;   transform: translateY(0); }
-}
-
-.animate-stats-refresh {
-    animation: stats-refresh 0.5s ease-out;
-}
-
-html {
-    scroll-behavior: smooth;
 }
