@@ -246,29 +246,22 @@ def _fetch_infra_apps() -> list[dict]:
 
 
 def _fetch_routes() -> list[dict]:
-    """Return every Gateway API route that can carry a service card.
-
-    ArgoCD is exposed as a TLSRoute and not an HTTPRoute: Cilium cannot pass
-    gRPC through an HTTPRoute (cilium#31933). Both kinds are read so a service
-    card does not depend on how its traffic is routed.
-    """
+    """Return every Gateway API route that can carry a service card."""
     clients = _get_clients()
     custom: client.CustomObjectsApi = clients["custom"]
-    routes: list[dict] = []
 
-    for version, plural in (("v1", "httproutes"), ("v1alpha2", "tlsroutes")):
-        try:
-            listed = custom.list_cluster_custom_object(
-                "gateway.networking.k8s.io",
-                version,
-                plural,
-                _request_timeout=K8S_TIMEOUT_SECONDS,
-            )
-            routes.extend(listed.get("items", []))
-        except API_ERRORS as exc:
-            logger.warning("%s indisponibles: %s", plural, exc)
+    try:
+        listed = custom.list_cluster_custom_object(
+            "gateway.networking.k8s.io",
+            "v1",
+            "httproutes",
+            _request_timeout=K8S_TIMEOUT_SECONDS,
+        )
+    except API_ERRORS as exc:
+        logger.warning("httproutes indisponibles: %s", exc)
+        return []
 
-    return routes
+    return listed.get("items", [])
 
 
 def _fetch_services() -> list[dict]:
