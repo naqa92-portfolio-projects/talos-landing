@@ -13,6 +13,12 @@ FROM python:3.14-slim
 
 WORKDIR /app
 
+# L'image de base retarde de plusieurs points Debian sur libc, perl et zlib ;
+# sans cette montée, le scan Grype bloquant du CI refuse chaque build.
+RUN apt-get update && \
+    apt-get upgrade -y --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/*
+
 RUN groupadd --gid 10001 landing && \
     useradd --uid 10001 --gid landing --no-create-home --shell /usr/sbin/nologin landing
 
