@@ -1,78 +1,3 @@
-# Core Coding Principles
-
-Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
-
-Tradeoff: These guidelines bias toward caution over speed. For trivial tasks, use judgment.
-
-## Think Before Coding
-
-Don't assume. Don't hide confusion. Surface tradeoffs.
-
-Before implementing:
-
-- State your assumptions explicitly. If uncertain, ask.
-- If multiple interpretations exist, present them - don't pick silently.
-- If a simpler approach exists, say so. Push back when warranted.
-- If something is unclear, stop. Name what's confusing. Ask.
-
-## Simplicity First
-
-Minimum code that solves the problem. Nothing speculative.
-
-- No features beyond what was asked.
-- No abstractions for single-use code.
-- No "flexibility" or "configurability" that wasn't requested.
-- No error handling for impossible scenarios.
-- If you write 200 lines and it could be 50, rewrite it.
-
-Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
-
-## Surgical Changes
-
-Touch only what you must. Clean up only your own mess.
-
-When editing existing code:
-
-- Don't "improve" adjacent code, comments, or formatting.
-- Don't refactor things that aren't broken.
-- Match existing style, even if you'd do it differently.
-- If you notice unrelated dead code, mention it - don't delete it.
-
-When your changes create orphans:
-
-- Remove imports/variables/functions that YOUR changes made unused.
-- Don't remove pre-existing dead code unless asked.
-
-The test: Every changed line should trace directly to the user's request.
-
-## Goal-Driven Execution
-
-Define success criteria. Loop until verified.
-
-Transform tasks into verifiable goals:
-
-- "Add validation" → "Write tests for invalid inputs, then make them pass"
-- "Fix the bug" → "Write a test that reproduces it, then make it pass"
-- "Refactor X" → "Ensure tests pass before and after"
-
-For multi-step tasks, state a brief plan:
-
-```
-1. [Step] → verify: [check]
-2. [Step] → verify: [check]
-3. [Step] → verify: [check]
-```
-
-Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
-
----
-
-# Language Preference
-
-Always respond in French.
-
----
-
 # Project: talos-landing
 
 Landing page for `taloslab.cc` — Flask SSR + HTMX + TailwindCSS v4.
@@ -81,16 +6,17 @@ Landing page for `taloslab.cc` — Flask SSR + HTMX + TailwindCSS v4.
 
 - **Backend**: Flask + Gunicorn
 - **Frontend**: Jinja2 SSR + HTMX + TailwindCSS v4 + AlpineJS
-- **Data**: Kubernetes API (nodes, metrics, ArgoCD applications)
+- **Data**: Kubernetes API — nodes, metrics, ArgoCD Applications, Crossplane XR Apps, HTTPRoutes
 - **Design**: palette « Xénon » — tokens dans `app/static/css/input.css`, source de vérité dans le skill `/youtube-identity` (`references/design-tokens.json`)
 
 ## TailwindCSS
 
-TailwindCSS v4 standalone CLI (no Node required):
+TailwindCSS v4 standalone CLI (no Node required). `app/static/css/style.css` est committé :
+devbox est son seul producteur, la CI ne le reconstruit pas.
 
 ```bash
-tailwindcss -i ./app/static/css/input.css -o ./app/static/css/style.css --minify   # Build
-tailwindcss -i ./app/static/css/input.css -o ./app/static/css/style.css --watch     # Dev
+devbox run css:build   # Build minifié — à relancer après toute modification de classes
+devbox run css:watch   # Watch mode
 ```
 
 ## Development

@@ -1,4 +1,5 @@
-"""Kubernetes API client — nodes, metrics, ArgoCD Applications + Crossplane XR Apps."""
+"""Kubernetes API client — nodes, metrics, ArgoCD Applications, Crossplane XR Apps,
+HTTPRoutes."""
 
 import logging
 import time

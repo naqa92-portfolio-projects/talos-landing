@@ -1,4 +1,4 @@
-"""App configuration — cache TTL, service metadata path."""
+"""App configuration — cache TTL, API timeout, mock mode."""
 
 import os
 
