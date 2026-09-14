@@ -4,9 +4,6 @@
     "tailwindcss_4@latest"
   ],
   "shell": {
-    "init_hook": [
-      ""
-    ],
     "scripts": {
       "css:build": "tailwindcss -i ./app/static/css/input.css -o ./app/static/css/style.css --minify",
       "css:watch": "tailwindcss -i ./app/static/css/input.css -o ./app/static/css/style.css --watch",

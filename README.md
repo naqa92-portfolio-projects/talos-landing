@@ -22,7 +22,7 @@ Tour complet de la plateforme Backstage (catalogue, templates, intégrations Kub
 | -------- | --------------------------------------------------- |
 | Backend  | Flask + Gunicorn                                    |
 | Frontend | Jinja2 SSR, HTMX, TailwindCSS v4, AlpineJS          |
-| Données  | Kubernetes API (nodes, metrics, ArgoCD, HTTPRoutes) |
+| Données  | Kubernetes API — nodes, metrics, ArgoCD Applications, Crossplane XR Apps, HTTPRoutes |
 | Design   | Palette Xénon, Archivo / Manrope / JetBrains Mono   |
 
 ## Architecture
@@ -48,6 +48,7 @@ flowchart TB
         Nodes["CoreV1Api<br/><small>Nodes</small>"]
         Metrics["metrics-server<br/><small>CPU / RAM</small>"]
         Argo["ArgoCD API<br/><small>Applications</small>"]
+        XR["Crossplane<br/><small>XR Apps</small>"]
     end
 
     subgraph K8sGw["🌐 Gateway API"]
@@ -63,6 +64,7 @@ flowchart TB
     K8sClient --> Nodes
     K8sClient --> Metrics
     K8sClient --> Argo
+    K8sClient --> XR
     K8sClient --> HTTPRoutes
 ```
 
@@ -73,7 +75,7 @@ flowchart LR
     subgraph CI["⚙️ GitHub Actions"]
         direction TB
         Version["📦 Version<br/><small>semver depuis<br/>pyproject.toml</small>"]
-        Build["🐳 Build<br/><small>TailwindCSS CLI<br/>Docker build<br/>Grype scan</small>"]
+        Build["🐳 Build<br/><small>Ruff + pytest<br/>Docker build<br/>Grype scan (bloquant)</small>"]
         Release["🚀 Release<br/><small>Bump versions<br/>Git tag + Release</small>"]
         GitOps["📝 Update GitOps<br/><small>PR talos-argocd<br/>image tag</small>"]
         Version --> Build --> Release --> GitOps
@@ -98,7 +100,7 @@ flowchart LR
 ## Fonctionnalités
 
 - Métriques cluster live (uptime, noeuds, CPU, RAM) via l'API Kubernetes
-- Statut des composants infra synchronisés depuis ArgoCD
+- Statut des composants infra lu sur les Applications ArgoCD et les XR Apps Crossplane
 - Cartes de services publics avec health check en direct
 - Rafraîchissement automatique toutes les 30s (HTMX polling)
 - Interface bilingue FR/EN (AlpineJS)
@@ -120,6 +122,9 @@ uv run flask --app app run --debug
 devbox run css:build   # Build minifié
 devbox run css:watch   # Watch mode
 ```
+
+`app/static/css/style.css` est committé et Devbox en est le seul producteur : toute
+modification de classes exige un `devbox run css:build` avant commit.
 
 `TALOS_MOCK=1` sert `app/fixtures.py` à la place de l'API Kubernetes : c'est le
 mode à utiliser pour travailler l'UI. Le mode est opt-in explicite — un défaut
@@ -147,7 +152,7 @@ app/
 ├── __init__.py          # Factory Flask
 ├── config.py            # Variables de configuration
 ├── fixtures.py          # Données factices servies quand TALOS_MOCK=1
-├── k8s.py               # Client Kubernetes (nodes, metrics, ArgoCD, HTTPRoutes)
+├── k8s.py               # Client K8s (nodes, metrics, Applications, XR Apps, HTTPRoutes)
 ├── routes.py            # Routes Flask + partials HTMX
 ├── static/css/          # TailwindCSS (input + build)
 └── templates/

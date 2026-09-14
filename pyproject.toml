@@ -2,12 +2,11 @@
 name = "talos-landing"
 version = "0.2.7"
 description = "Landing page for taloslab.cc — live Kubernetes metrics & infrastructure showcase"
-requires-python = ">=3.13"
+requires-python = ">=3.14"
 dependencies = [
     "flask>=3.1",
     "gunicorn>=23.0",
     "kubernetes>=31.0",
-    "pyyaml>=6.0",
 ]
 
 [dependency-groups]
@@ -21,11 +20,7 @@ testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 88
-target-version = "py313"
 
-[tool.hatch.build.targets.wheel]
-packages = ["app"]
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+# L'app tourne depuis son cwd (`gunicorn "app:create_app()"`), jamais installée.
+[tool.uv]
+package = false
