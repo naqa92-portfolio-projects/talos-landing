@@ -154,7 +154,7 @@ jobs:
         env:
           VERSION: ${{ needs.version.outputs.new-version }}
         run: |
-          APP_DIR=apps/prod/landing-page
+          APP_DIR=apps/prod/landing-page/resources
           IMAGE_BASE=$(yq '.spec.image' "$APP_DIR/app.yaml" | cut -d: -f1)
           yq eval -i ".spec.image = \"${IMAGE_BASE}:${VERSION}\"" "$APP_DIR/app.yaml"
 
