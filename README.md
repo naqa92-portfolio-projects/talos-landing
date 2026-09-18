@@ -14,16 +14,16 @@ Un aperçu de ces repos privés reste accessible via des **démos vidéo**.
 
 Tour complet de la plateforme Backstage (catalogue, templates, intégrations Kubernetes/ArgoCD/Crossplane) :
 
-[![Démo talos-backstage E2E](img/thumbnail1.jpeg)](https://www.youtube.com/watch?v=OeuiQiAS6uA)
+[![Démo talos-backstage E2E](img/thumbnail1.jpeg)](https://www.youtube.com/watch?v=TQNPwCAniQk)
 
 ## Stack
 
-| Couche   | Technologie                                         |
-| -------- | --------------------------------------------------- |
-| Backend  | Flask + Gunicorn                                    |
-| Frontend | Jinja2 SSR, HTMX, TailwindCSS v4, AlpineJS          |
+| Couche   | Technologie                                                                          |
+| -------- | ------------------------------------------------------------------------------------ |
+| Backend  | Flask + Gunicorn                                                                     |
+| Frontend | Jinja2 SSR, HTMX, TailwindCSS v4, AlpineJS                                           |
 | Données  | Kubernetes API — nodes, metrics, ArgoCD Applications, Crossplane XR Apps, HTTPRoutes |
-| Design   | Palette Xénon, Archivo / Manrope / JetBrains Mono   |
+| Design   | Palette Xénon, Archivo / Manrope / JetBrains Mono                                    |
 
 ## Architecture
 
