@@ -14,7 +14,7 @@ Un aperçu de ces repos privés reste accessible via des **démos vidéo**.
 
 Tour complet de la plateforme Backstage (catalogue, templates, intégrations Kubernetes/ArgoCD/Crossplane) :
 
-[![Démo talos-backstage E2E](img/thumbnail1.jpeg)](https://www.youtube.com/watch?v=TQNPwCAniQk)
+[![Démo talos-backstage E2E](img/thumbnail1.jpeg)](https://www.youtube.com/watch?v=Qc2FP0QDngs)
 
 ## Stack
 
