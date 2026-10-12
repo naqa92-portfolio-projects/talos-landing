@@ -8,7 +8,9 @@ Landing page vitrine pour le homelab Kubernetes **taloslab.cc** — affiche en t
 
 Ce repo est la **seule partie publique** de l'écosystème `taloslab.cc`. Tout le core - Talos, GitOps (ArgoCD), Crossplane, Backstage, observabilité, sécurité, CI/CD - vit dans des repos privés.
 
-Un aperçu de ces repos privés reste accessible via des **démos vidéo**.
+Un aperçu de ces repos privés reste accessible via des **démos vidéo**, et les décisions
+d'architecture, leurs compromis et les incidents sont publiés sur
+[talos-docs](https://naqa92-portfolio-projects.github.io/talos-docs/) ([English](https://naqa92-portfolio-projects.github.io/talos-docs/en/)).
 
 ### Démo vidéo : talos-backstage
 
@@ -121,6 +123,12 @@ uv run flask --app app run --debug
 # Build CSS (nécessite Devbox)
 devbox run css:build   # Build minifié
 devbox run css:watch   # Watch mode
+```
+
+```bash
+# Tests et lint (exécutés aussi par la CI)
+uv run pytest
+uv run ruff check
 ```
 
 `app/static/css/style.css` est committé et Devbox en est le seul producteur : toute
