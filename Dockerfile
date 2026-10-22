@@ -1,5 +1,5 @@
 # --- Python dependencies ---
-FROM python:3.14-slim AS builder
+FROM python:3.15-slim AS builder
 
 RUN pip install --no-cache-dir uv
 
@@ -9,7 +9,7 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
 
 # --- Runtime ---
-FROM python:3.14-slim
+FROM python:3.15-slim
 
 WORKDIR /app
 
