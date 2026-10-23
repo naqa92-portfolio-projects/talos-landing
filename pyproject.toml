@@ -23,4 +23,5 @@ line-length = 88
 
 # L'app tourne depuis son cwd (`gunicorn "app:create_app()"`), jamais installée.
 [tool.uv]
+exclude-newer = "3 days"
 package = false
