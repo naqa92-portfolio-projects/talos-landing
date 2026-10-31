@@ -33,3 +33,7 @@ uv run flask --app app run --debug    # contre le vrai cluster (kubeconfig coura
 docker build -t talos-landing .
 docker run -p 8000:8000 talos-landing
 ```
+
+## Pitfalls and rules
+
+- CI auto-increments the patch version when a tag already exists: do not bump `pyproject.toml` manually for consecutive patch changes.
